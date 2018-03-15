@@ -16,6 +16,11 @@
             android:id="@+id/nav_record"
             android:icon="@drawable/ic_microphone"
             android:title="@string/nav_record" />
+        <item
+            android:id="@+id/nav_favorites"
+            android:icon="@android:drawable/btn_star"
+            android:title="@string/nav_favorites"
+            />
     </group>
 
     <item android:title="@string/nav_communicate">

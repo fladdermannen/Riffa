@@ -44,4 +44,16 @@
         app:layout_anchorGravity="bottom|end"
         app:srcCompat="@drawable/ic_microphone" />
 
+    <ImageButton
+        android:id="@+id/backBtn"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginStart="16dp"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="start"
+        android:background="@drawable/ic_arrow_back"
+        android:onClick="backBtnPress"/>
+
+
 </android.support.design.widget.CoordinatorLayout>

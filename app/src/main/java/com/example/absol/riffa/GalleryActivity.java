@@ -1,5 +1,7 @@
 package com.example.absol.riffa;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -8,7 +10,9 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
 
@@ -20,6 +24,7 @@ public class GalleryActivity extends AppCompatActivity {
     private List<Recording> recordingList = new ArrayList<>();
     private RecyclerView recyclerView;
     private RecordingsAdapter mAdapter;
+    private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +42,7 @@ public class GalleryActivity extends AppCompatActivity {
             }
         });
 
+        prepareRecordingData();
 
         recyclerView = (RecyclerView) findViewById(R.id.gallery_recycler_view);
         mAdapter = new RecordingsAdapter(recordingList);
@@ -46,7 +52,6 @@ public class GalleryActivity extends AppCompatActivity {
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         recyclerView.setAdapter(mAdapter);
 
-        prepareRecordingData();
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new ClickListener() {
             @Override
@@ -78,7 +83,7 @@ public class GalleryActivity extends AppCompatActivity {
         rec = new Recording("fuccboi", "4.33", "genre");
         recordingList.add(rec);
 
-        rec = new Recording("Hejhej", "3.33", "fixit");
+        rec = new Recording("Hejhej", "3.33", "fibjofab");
         recordingList.add(rec);
 
         rec = new Recording("New", "4.20", "cool");
@@ -90,10 +95,10 @@ public class GalleryActivity extends AppCompatActivity {
         rec = new Recording("Banana banana", "4.20", "oijasdio");
         recordingList.add(rec);
 
-        rec = new Recording("schoolboy", "4.33", "meshuggah");
+        rec = new Recording("crapcrap", "4.33", "mesah");
         recordingList.add(rec);
 
-        rec = new Recording("Hejhej", "3.33", "fix");
+        rec = new Recording("Hejhej", "3.33", "fixxx");
         recordingList.add(rec);
 
         rec = new Recording("New", "4.20", "cool");
@@ -105,10 +110,10 @@ public class GalleryActivity extends AppCompatActivity {
         rec = new Recording("Banana banana", "4.20", "oijasdio");
         recordingList.add(rec);
 
-        rec = new Recording("schoolboy", "4.33", "meshuggah");
+        rec = new Recording("fisk", "4.33", "aqua");
         recordingList.add(rec);
 
-        rec = new Recording("Hejhej", "3.33", "fix");
+        rec = new Recording("Hejhej", "3.33", "fibble");
         recordingList.add(rec);
 
     }
@@ -118,4 +123,32 @@ public class GalleryActivity extends AppCompatActivity {
         startActivity(backIntent);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_gallery, menu);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.action_search)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(getComponentName()));
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // filter recycler view when query submitted
+                mAdapter.getFilter().filter(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String query) {
+                // filter recycler view when text is changed
+                mAdapter.getFilter().filter(query);
+                return false;
+            }
+        });
+        return true;
+    }
 }

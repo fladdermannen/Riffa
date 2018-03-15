@@ -1,18 +1,20 @@
 package com.example.absol.riffa;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by absol on 2018-03-15.
- */
 
-public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.MyViewHolder> {
+
+public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.MyViewHolder> implements Filterable{
 
     private List<Recording> recordingsList;
 
@@ -49,5 +51,47 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
      public int getItemCount() {
          return recordingsList.size();
      }
+
+
+    private List<Recording> contactListFiltered;
+
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String charString = charSequence.toString();
+                if (charString.isEmpty()) {
+                    contactListFiltered = recordingsList;
+                } else {
+                    List<Recording> filteredList = new ArrayList<>();
+                    for (Recording row : recordingsList) {
+
+                        // name match condition. this might differ depending on your requirement
+                        // here we are looking for name or phone number match
+                        if (row.getTitle().toLowerCase().contains(charString.toLowerCase()) || row.getGenre().contains(charSequence)) {
+                            filteredList.add(row);
+                        }
+                    }
+
+                    contactListFiltered = filteredList;
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = contactListFiltered;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                contactListFiltered = (ArrayList<Recording>) filterResults.values;
+
+                Log.d("TAG", "publishresults" + contactListFiltered);
+                // refresh the list with filtered data
+                notifyDataSetChanged();
+            }
+        };
+    }
+
+
 }
 

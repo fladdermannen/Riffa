@@ -2,9 +2,7 @@ package com.example.absol.riffa;
 
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,22 +14,21 @@ import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 
-public class GalleryActivity extends AppCompatActivity implements RecordingsAdapter.RecordingsAdapterListener{
+public class FavoritesActivity extends AppCompatActivity implements FavoritesAdapter.FavoritesAdapterListener{
 
-    private ArrayList<Recording> recordingList = new ArrayList<>();
+    private ArrayList<Recording> favoritesList = new ArrayList<>();
     private RecyclerView recyclerView;
-    private RecordingsAdapter mAdapter;
+    private FavoritesAdapter mAdapter;
     private SearchView searchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_gallery);
+        setContentView(R.layout.activity_favorites);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -41,20 +38,10 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        //prepareFavoritesData();
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent fabIntent = new Intent(GalleryActivity.this, AudioRecord.class);
-                startActivity(fabIntent);
-            }
-        });
-
-       // prepareRecordingData();
-
-        recyclerView = (RecyclerView) findViewById(R.id.gallery_recycler_view);
-        mAdapter = new RecordingsAdapter(this, recordingList, this);
+        recyclerView = (RecyclerView) findViewById(R.id.favorites_recycler_view);
+        mAdapter = new FavoritesAdapter(this, favoritesList, this);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -63,10 +50,16 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     }
 
     @Override
-    public void onRecordingSelected(Recording rec) {
-        Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", " + rec.getAccess(), Toast.LENGTH_LONG).show();
+    public void onFavoriteSelected(Recording rec) {
+        Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() , Toast.LENGTH_LONG).show();
     }
 
+
+    /*@Override
+    public boolean onSupportNavigateUp() {
+        finish();
+        return true;
+    } */
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -81,7 +74,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_gallery, menu);
+        getMenuInflater().inflate(R.menu.menu_favorites, menu);
 
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
@@ -109,68 +102,31 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         return true;
     }
 
-    @Override
-    public void accessChange(Recording rec, View view) {
-        boolean check = rec.getAccess();
-        if(!check) {
-            rec.setAccess(true);
-            view.setBackgroundResource(R.drawable.ic_lock_unlocked);
-        }
-        else {
-            rec.setAccess(false);
-            view.setBackgroundResource(R.drawable.ic_lock);
-        }
-    }
 
-
-    /*private void prepareRecordingData(){
+    /*private void prepareFavoritesData(){
         Recording rec = new Recording("Test", "3.14", "shit", "2018-03-17");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("New", "4.20", "cool", "2018-03-12");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("Blabla", "5.55", "trash", "2018-03-11");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-01-17");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("fuccboi", "4.33", "genre", "2018-03-20");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("Hejhej", "3.33", "fibjofab", "2018-01-12");
-        recordingList.add(rec);
-
-        rec = new Recording("New", "4.20", "cool", "2018-03-17");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("Blabla", "5.55", "trash", "2018-03-17");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
         rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-03-30");
-        recordingList.add(rec);
-
-        rec = new Recording("crapcrap", "4.33", "mesah", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Hejhej", "3.33", "fixxx", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("New", "4.20", "cool", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("fisk", "4.33", "aqua", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Hejhej", "3.33", "fibble", "2018-03-17");
-        recordingList.add(rec);
+        favoritesList.add(rec);
 
     } */
 }

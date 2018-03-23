@@ -1,19 +1,24 @@
 package com.example.absol.riffa;
 
-/**
- * Created by absol on 2018-03-15.
- */
+import android.net.Uri;
+
+
 
 public class Recording {
 
     private String title;
     private String length;
     private String genre;
+    private String date;
+    private boolean access;
+    private String link;
 
-    public Recording(String title, String length, String genre){
+    public Recording(String title, String length, String genre, String date, Uri uri){
         this.title = title;
         this.length = length;
         this.genre = genre;
+        this.date = date;
+        this.link = uri.toString();
     }
 
     public String getLength() {
@@ -28,6 +33,26 @@ public class Recording {
         return genre;
     }
 
+    public String getDate() {
+        return date;
+    }
+
+    public boolean getAccess() {
+        return access;
+    }
+
+    public String getLink() {
+        return link;
+    }
+
+    public void setAccess(boolean access) {
+        this.access = access;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
     public void setGenre(String genre) {
         this.genre = genre;
     }
@@ -38,5 +63,9 @@ public class Recording {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public void setLink(Uri link) {
+        this.link = link.toString();
     }
 }

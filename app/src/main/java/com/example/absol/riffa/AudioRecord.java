@@ -2,13 +2,14 @@ package com.example.absol.riffa;
 
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,12 +17,23 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
 public class AudioRecord extends AppCompatActivity {
 
-    private static final String LOG_TAG = "AudioRecordTest";
+    private static final String TAG = "Patrik";
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
     private static String mFileName = null;
 
@@ -30,6 +42,17 @@ public class AudioRecord extends AppCompatActivity {
 
     private PlayButton   mPlayButton = null;
     private MediaPlayer   mPlayer = null;
+
+    FirebaseDatabase database;
+    DatabaseReference myRef;
+    private StorageReference mStorageRef;
+
+    private String uniqueID;
+
+    private ProgressDialog mProgress;
+
+    private Recording newRec;
+
 
     // Requesting permission to RECORD_AUDIO
     private boolean permissionToRecordAccepted = false;
@@ -43,7 +66,7 @@ public class AudioRecord extends AppCompatActivity {
                 permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 break;
         }
-        if (!permissionToRecordAccepted ) finish();
+        if (!permissionToRecordAccepted) finish();
 
     }
 
@@ -64,14 +87,17 @@ public class AudioRecord extends AppCompatActivity {
     }
 
     private void startPlaying() {
+        String url = newRec.getLink();
+
         mPlayer = new MediaPlayer();
         try {
-            mPlayer.setDataSource(mFileName);
+            mPlayer.setDataSource(url);
             mPlayer.prepare();
             mPlayer.start();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            e.printStackTrace();
         }
+
     }
 
     private void stopPlaying() {
@@ -89,15 +115,57 @@ public class AudioRecord extends AppCompatActivity {
         try {
             mRecorder.prepare();
         } catch (IOException e) {
-            Log.e(LOG_TAG, "prepare() failed");
+            Log.e(TAG, "prepare() failed");
         }
 
         mRecorder.start();
     }
 
+    private void uploadAudio() {
+
+        uniqueID = UUID.randomUUID().toString();
+
+        Uri file = Uri.fromFile(new File(mFileName));
+        StorageReference rec = mStorageRef.child(uniqueID);
+
+        mProgress.setMessage("Saving audio ...");
+        mProgress.show();
+
+        rec.putFile(file)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // Get a URL to the uploaded content
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+
+                        newRec = new Recording("test", "123", "blabla", "0301", downloadUrl);
+                        //myRef = database.getReference(newRec.getTitle());
+                        myRef = database.getReference();
+                        myRef.push().setValue(newRec);
+                        //myRef.setValue(newRec);
+
+                        mProgress.dismiss();
+                        Toast.makeText(AudioRecord.this, "Recording complete", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) {
+                        // Handle unsuccessful uploads
+                        // ...
+                        mProgress.setMessage("Recording failed");
+                        mProgress.dismiss();
+                        Toast.makeText(AudioRecord.this, "Recording failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
     private void stopRecording() {
         mRecorder.stop();
         mRecorder.release();
+
+        uploadAudio();
+
         mRecorder = null;
     }
 
@@ -163,6 +231,10 @@ public class AudioRecord extends AppCompatActivity {
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
         setupActionBar();
+
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+        database = FirebaseDatabase.getInstance();
+        mProgress = new ProgressDialog(this);
 
         // Record to the external cache directory for visibility
         mFileName = getExternalCacheDir().getAbsolutePath();

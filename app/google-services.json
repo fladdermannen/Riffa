@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "537973675543",
+    "firebase_url": "https://riffa-ac10f.firebaseio.com",
+    "project_id": "riffa-ac10f",
+    "storage_bucket": "riffa-ac10f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:537973675543:android:806f5e17074499d7",
+        "android_client_info": {
+          "package_name": "com.example.absol.riffa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "537973675543-j5qtua79no2j6m8ikkfnic3mp1b2aec7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.absol.riffa",
+            "certificate_hash": "c276dc8148c1408013f5b0e3956a34d4d59f933f"
+          }
+        },
+        {
+          "client_id": "537973675543-it4853h7s408tol571lpqe3ooknr9805.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFzIJ0hBn0oY0mg_J2VEzAPt7lxqs3_LY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "537973675543-it4853h7s408tol571lpqe3ooknr9805.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

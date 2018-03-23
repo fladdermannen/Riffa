@@ -1,20 +1,44 @@
 package com.example.absol.riffa;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private static final int REQUEST_INTERNET_PERMISSION = 200;
+    private boolean permissionToInternetAccepted = false;
+    private String [] permissions = {Manifest.permission.INTERNET};
+    private FirebaseAuth auth;
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_INTERNET_PERMISSION:
+                permissionToInternetAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if (!permissionToInternetAccepted) finish();
+
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +46,10 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        auth = FirebaseAuth.getInstance();
+
+        ActivityCompat.requestPermissions(this, permissions, REQUEST_INTERNET_PERMISSION);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -43,6 +71,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        Log.d("Hej", "onCreate: " + permissionToInternetAccepted);
     }
 
     @Override
@@ -76,6 +105,7 @@ public class MainActivity extends AppCompatActivity
             Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
             startActivity(settingsIntent);
         } else if (id == R.id.action_logout) {
+            auth.signOut();
             Intent logoutIntent = new Intent(MainActivity.this, LoginActivity.class);
             startActivity(logoutIntent);
         }
@@ -96,12 +126,14 @@ public class MainActivity extends AppCompatActivity
             Intent galleryIntent = new Intent(MainActivity.this, GalleryActivity.class);
             startActivity(galleryIntent);
         } else if (id == R.id.nav_favorites) {
-
-        } else if (id == R.id.nav_import) {
-
+            Intent favoritesIntent = new Intent(MainActivity.this, FavoritesActivity.class);
+            startActivity(favoritesIntent);
+        } else if (id == R.id.nav_contacts) {
+            Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
+            startActivity(contactsIntent);
         } else if (id == R.id.nav_share) {
 
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.nav_messages) {
 
         }
 

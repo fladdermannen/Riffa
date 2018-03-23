@@ -12,18 +12,10 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/row_padding_vertical">
 
-    <ImageButton
-        android:id="@+id/padlock"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_centerVertical="true"
-        android:layout_marginEnd="16dp"/>
-
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/padlock"
         android:layout_alignParentTop="true"
         android:textColor="@color/title"
         android:textSize="16sp"
@@ -33,7 +25,6 @@
         android:id="@+id/length"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_toEndOf="@id/padlock"
         android:layout_below="@id/title" />
 
     <TextView

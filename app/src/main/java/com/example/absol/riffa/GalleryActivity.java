@@ -14,10 +14,18 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -27,6 +35,11 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     private RecyclerView recyclerView;
     private RecordingsAdapter mAdapter;
     private SearchView searchView;
+    FirebaseDatabase mDatabase;
+    DatabaseReference mReference;
+    private static final String TAG = "Patrik";
+    private FirebaseAuth auth;
+    private String userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +47,11 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         setContentView(R.layout.activity_gallery);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        auth = FirebaseAuth.getInstance();
+        userID = auth.getCurrentUser().getUid();
+        mDatabase = FirebaseDatabase.getInstance();
+        mReference= mDatabase.getReference().child("Users").child(userID).child("Recordings");
+        prepareRecordingData();
 
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -51,7 +69,6 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             }
         });
 
-       // prepareRecordingData();
 
         recyclerView = (RecyclerView) findViewById(R.id.gallery_recycler_view);
         mAdapter = new RecordingsAdapter(this, recordingList, this);
@@ -59,7 +76,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        recyclerView.setAdapter(mAdapter);
+
     }
 
     @Override
@@ -119,6 +136,31 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         else {
             rec.setAccess(false);
             view.setBackgroundResource(R.drawable.ic_lock);
+        }
+    }
+
+    public void prepareRecordingData() {
+
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                showData(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void showData(DataSnapshot dataSnapshot) {
+        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+            Recording rec = ds.getValue(Recording.class);
+            recordingList.add(rec);
+            Log.d(TAG, "showData: " + recordingList.toString());
+
+            recyclerView.setAdapter(mAdapter);
         }
     }
 

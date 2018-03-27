@@ -1,9 +1,5 @@
 package com.example.absol.riffa;
 
-import android.net.Uri;
-
-
-
 public class Recording {
 
     private String title;
@@ -11,14 +7,18 @@ public class Recording {
     private String genre;
     private String date;
     private boolean access;
-    private String link;
+    private String url;
 
-    public Recording(String title, String length, String genre, String date, Uri uri){
+    public Recording(String title, String length, String genre, String date, String uri){
         this.title = title;
         this.length = length;
         this.genre = genre;
         this.date = date;
-        this.link = uri.toString();
+        this.url = uri;
+    }
+
+    public Recording() {
+
     }
 
     public String getLength() {
@@ -42,7 +42,7 @@ public class Recording {
     }
 
     public String getLink() {
-        return link;
+        return url;
     }
 
     public void setAccess(boolean access) {
@@ -65,7 +65,7 @@ public class Recording {
         this.title = title;
     }
 
-    public void setLink(Uri link) {
-        this.link = link.toString();
+    public void setLink(String link) {
+        this.url = link;
     }
 }

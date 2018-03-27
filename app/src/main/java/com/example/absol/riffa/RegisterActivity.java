@@ -19,6 +19,10 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -26,6 +30,8 @@ public class RegisterActivity extends AppCompatActivity {
     private View mRegisterFormView;
     private View mProgressView;
     private FirebaseAuth auth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference mReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +44,8 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         auth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+        mReference = mDatabase.getReference();
 
         mEmailView = (EditText) findViewById(R.id.register_email);
         mPasswordView = (EditText) findViewById(R.id.register_password);
@@ -64,11 +72,12 @@ public class RegisterActivity extends AppCompatActivity {
         mFirstNameView.setError(null);
         mLastNameView.setError(null);
 
+
         // Store values at the time of the login attempt.
         final String fName = mFirstNameView.getText().toString();
         final String lName = mLastNameView.getText().toString();
         final String email = mEmailView.getText().toString();
-        String password = mPasswordView.getText().toString();
+        final String password = mPasswordView.getText().toString();
 
         boolean cancel = false;
         View focusView = null;
@@ -124,9 +133,41 @@ public class RegisterActivity extends AppCompatActivity {
                                 mPasswordView.requestFocus();
                                 showProgress(false);
                             } else {
-                                User newUser = new User(fName, lName, email);
-                                finish();
-                                startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                auth.signInWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                                if(!task.isSuccessful()) {
+                                                    Toast.makeText(RegisterActivity.this, "Registration success, but login failed", Toast.LENGTH_SHORT).show();
+                                                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                                                } else {
+                                                    String uID = auth.getCurrentUser().getUid();
+                                                    if(uID != null) {
+                                                        FirebaseUser newFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+                                                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                                                .setDisplayName(fName + " " + lName).build();
+                                                        newFirebaseUser.updateProfile(profileUpdates)
+                                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                                    @Override
+                                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                                        if(!task.isSuccessful()) {
+                                                                            Toast.makeText(RegisterActivity.this, "Profile update failed", Toast.LENGTH_SHORT).show();
+                                                                        } else {
+                                                                            Toast.makeText(RegisterActivity.this, "Profile updated", Toast.LENGTH_SHORT).show();
+                                                                        }
+                                                                    }
+                                                                });
+                                                        User newUser = new User(fName, lName, email, uID);
+                                                        //mReference.push().setValue(newUser);
+                                                        mReference.child("Users").child(uID).setValue(newUser);
+
+                                                        finish();
+                                                        startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                                    }
+                                                }
+                                            }
+                                        });
+
                             }
 
                         }
@@ -142,7 +183,7 @@ public class RegisterActivity extends AppCompatActivity {
 
     private boolean isPasswordValid(String password) {
         //TODO: Replace this with your own logic
-        return password.length() > 4;
+        return password.length() > 5;
     }
 
     /**

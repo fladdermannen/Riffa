@@ -21,6 +21,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -46,6 +48,8 @@ public class AudioRecord extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference myRef;
     private StorageReference mStorageRef;
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
     private String uniqueID;
 
@@ -123,6 +127,7 @@ public class AudioRecord extends AppCompatActivity {
 
     private void uploadAudio() {
 
+        final String userId = auth.getCurrentUser().getUid();
         uniqueID = UUID.randomUUID().toString();
 
         Uri file = Uri.fromFile(new File(mFileName));
@@ -138,11 +143,9 @@ public class AudioRecord extends AppCompatActivity {
                         // Get a URL to the uploaded content
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
 
-                        newRec = new Recording("test", "123", "blabla", "0301", downloadUrl);
-                        //myRef = database.getReference(newRec.getTitle());
-                        myRef = database.getReference();
-                        myRef.push().setValue(newRec);
-                        //myRef.setValue(newRec);
+                        newRec = new Recording("test2", "123", "blabla", "0301", downloadUrl.toString());
+
+                        myRef.child("Users").child(userId).child("Recordings").push().setValue(newRec);
 
                         mProgress.dismiss();
                         Toast.makeText(AudioRecord.this, "Recording complete", Toast.LENGTH_SHORT).show();
@@ -234,6 +237,7 @@ public class AudioRecord extends AppCompatActivity {
 
         mStorageRef = FirebaseStorage.getInstance().getReference();
         database = FirebaseDatabase.getInstance();
+        myRef = database.getReference();
         mProgress = new ProgressDialog(this);
 
         // Record to the external cache directory for visibility

@@ -13,12 +13,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -27,6 +29,10 @@ public class MainActivity extends AppCompatActivity
     private boolean permissionToInternetAccepted = false;
     private String [] permissions = {Manifest.permission.INTERNET};
     private FirebaseAuth auth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference mReference;
+
+    private static final String TAG = "Patrik";
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -48,6 +54,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         auth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_INTERNET_PERMISSION);
 
@@ -71,7 +78,16 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Log.d("Hej", "onCreate: " + permissionToInternetAccepted);
+        // FIND NAV_HEADER_MAIN LAYOUT FOR TEXTVIEWS???????????????????????????????????????????????????????????????????????
+
+      //  LayoutInflater mInflater = getLayoutInflater();
+       // View mView = mInflater.inflate(R.layout.nav_header_main, null);
+        TextView nameView = navigationView.findViewById(R.id.drawer_name);
+        TextView emailView = navigationView.findViewById(R.id.drawer_email);
+
+        emailView.setText("hej");
+        nameView.setText("hejhej");
+
     }
 
     @Override
@@ -138,6 +154,8 @@ public class MainActivity extends AppCompatActivity
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
+
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }

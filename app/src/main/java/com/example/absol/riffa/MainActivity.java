@@ -13,6 +13,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity
 
         auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
+        Log.d(TAG, "onCreate: current user is " + auth.getCurrentUser().getDisplayName());
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_INTERNET_PERMISSION);
 
@@ -78,16 +80,15 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // FIND NAV_HEADER_MAIN LAYOUT FOR TEXTVIEWS???????????????????????????????????????????????????????????????????????
+        View ml =navigationView.getHeaderView(0);
 
-      //  LayoutInflater mInflater = getLayoutInflater();
-       // View mView = mInflater.inflate(R.layout.nav_header_main, null);
-        TextView nameView = navigationView.findViewById(R.id.drawer_name);
-        TextView emailView = navigationView.findViewById(R.id.drawer_email);
+        TextView mEmail = ml.findViewById(R.id.drawer_email);
+        TextView mName = ml.findViewById(R.id.drawer_name);
 
-        emailView.setText("hej");
-        nameView.setText("hejhej");
-
+        if(auth != null) {
+            mEmail.setText(auth.getCurrentUser().getEmail());
+            mName.setText(auth.getCurrentUser().getDisplayName());
+        }
     }
 
     @Override

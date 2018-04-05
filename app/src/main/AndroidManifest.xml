@@ -84,10 +84,17 @@
             </intent-filter>
         </activity>
         <activity android:name=".RegisterActivity">
-
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
+        </activity>
+        <activity
+            android:name=".MediaPlayer"
+            android:label="@string/title_activity_media_player"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".GalleryActivity" />
         </activity>
     </application>
 

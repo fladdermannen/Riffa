@@ -201,4 +201,6 @@
     <string name="pref_title_vibrate">Vibrate</string>
     <string name="title_activity_contacts">ContactsActivity</string>
     <string name="title_activity_favorites">FavoritesActivity</string>
+    <string name="title_activity_media_player">MediaPlayer</string>
+    <string name="section_format">Hello World from section: %1$d</string>
 </resources>

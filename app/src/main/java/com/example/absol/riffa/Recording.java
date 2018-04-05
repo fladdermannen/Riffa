@@ -1,6 +1,8 @@
 package com.example.absol.riffa;
 
-public class Recording {
+import java.io.Serializable;
+
+public class Recording implements Serializable {
 
     private String title;
     private String length;
@@ -68,4 +70,6 @@ public class Recording {
     public void setLink(String link) {
         this.url = link;
     }
+
+
 }

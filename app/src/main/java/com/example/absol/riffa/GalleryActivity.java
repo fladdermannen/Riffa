@@ -59,13 +59,14 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        Log.d(TAG, "onCreate: current recordingslist: " + recordingList);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent fabIntent = new Intent(GalleryActivity.this, AudioRecord.class);
-                startActivity(fabIntent);
+                /*Intent fabIntent = new Intent(GalleryActivity.this, AudioRecord.class);
+                startActivity(fabIntent); */
             }
         });
 
@@ -81,7 +82,16 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
 
     @Override
     public void onRecordingSelected(Recording rec) {
-        Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", " + rec.getAccess(), Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", access is " + rec.getAccess(), Toast.LENGTH_LONG).show();
+
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("recordings", recordingList);
+
+        Intent intent = new Intent(this, MediaPlayer.class);
+        intent.putExtras(bundle);
+
+        startActivity(intent);
+
     }
 
 
@@ -145,6 +155,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 showData(dataSnapshot);
+                Log.d(TAG, "onDataChange: checking database");
             }
 
             @Override

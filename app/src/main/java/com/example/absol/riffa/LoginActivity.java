@@ -112,10 +112,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+        //Autologin, skapar problem med gallery
         auth = FirebaseAuth.getInstance();
         if (auth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
         }
+
+        /*auth = FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() != null) {
+            auth.signOut();
+        }*/
 
     }
 

@@ -5,13 +5,13 @@ import java.io.Serializable;
 public class Recording implements Serializable {
 
     private String title;
-    private String length;
+    private int length;
     private String genre;
     private String date;
     private boolean access;
     private String url;
 
-    public Recording(String title, String length, String genre, String date, String uri){
+    public Recording(String title, int length, String genre, String date, String uri){
         this.title = title;
         this.length = length;
         this.genre = genre;
@@ -23,7 +23,7 @@ public class Recording implements Serializable {
 
     }
 
-    public String getLength() {
+    public int getLength() {
         return length;
     }
 
@@ -59,7 +59,7 @@ public class Recording implements Serializable {
         this.genre = genre;
     }
 
-    public void setLength(String length) {
+    public void setLength(int length) {
         this.length = length;
     }
 

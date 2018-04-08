@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="350dp"
+    android:layout_height="475dp"
+    android:background="@color/colorAccent"
+    android:padding="5dp"
+    android:layout_gravity="center">
+
+    <TextView
+        android:id="@+id/dialogclose"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:text="X"
+        android:textStyle="bold"
+        android:textColor="@color/textColor"
+        android:layout_gravity="end"
+        android:gravity="center"
+        android:background="@drawable/circlebackground"/>
+
+    <TextView
+        android:layout_margin="16dp"
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Saving recording..."
+        android:textStyle="bold"
+        android:textSize="24sp"
+        android:gravity="center"/>
+
+    <EditText
+        android:layout_margin="16dp"
+        android:id="@+id/saveTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="Set title"
+        android:maxLines="1"
+        android:gravity="center"/>
+
+    <EditText
+        android:layout_margin="16dp"
+        android:id="@+id/saveGenre"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="textPersonName"
+        android:hint="Set genre"
+        android:maxLines="1"
+        android:gravity="center"/>
+
+    <Button
+        android:id="@+id/btnSaveSave"
+        android:text="Save"
+        android:layout_marginTop="68dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/buttonstylerecording"
+        android:textColor="@color/textColor"
+        android:textStyle="bold"/>
+
+</LinearLayout>

@@ -74,8 +74,9 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         Recording recording = recordingsList.get(position);
+
         holder.title.setText(recording.getTitle());
-        holder.length.setText(recording.getLength());
+        holder.length.setText(String.valueOf(recording.getLength()));
         holder.genre.setText(recording.getGenre());
         holder.date.setText(recording.getDate());
         if(!recording.getAccess())

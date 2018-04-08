@@ -25,12 +25,13 @@
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/padlock"
         android:layout_alignParentTop="true"
-        android:textColor="@color/title"
-        android:textSize="16sp"
+        android:textColor="@color/textColor"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/length"
+        android:textColor="@color/length"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@id/padlock"
@@ -38,12 +39,14 @@
 
     <TextView
         android:id="@+id/date"
+        android:textColor="@color/textColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true" />
 
     <TextView
         android:id="@+id/genre"
+        android:layout_marginTop="8dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"

@@ -59,7 +59,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        Log.d(TAG, "onCreate: current recordingslist: " + recordingList);
+        Log.d(TAG, "onCreate: GALLERY current recordingslist: " + recordingList);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -86,9 +86,14 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
 
         Bundle bundle = new Bundle();
         bundle.putSerializable("recordings", recordingList);
+        Bundle bundle2 = new Bundle();
+        bundle2.putSerializable("current", rec);
 
-        Intent intent = new Intent(this, MediaPlayer.class);
+        Intent intent = new Intent(this, MyMediaPlayer.class);
         intent.putExtras(bundle);
+        intent.putExtras(bundle2);
+        intent.putExtra("position", recordingList.indexOf(rec));
+
 
         startActivity(intent);
 
@@ -154,8 +159,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         mReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "onDataChange GALLERY: checking database");
                 showData(dataSnapshot);
-                Log.d(TAG, "onDataChange: checking database");
             }
 
             @Override
@@ -169,7 +174,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         for(DataSnapshot ds : dataSnapshot.getChildren()) {
             Recording rec = ds.getValue(Recording.class);
             recordingList.add(rec);
-            Log.d(TAG, "showData: " + recordingList.toString());
+            Log.d(TAG, "showData: GALLERY" + recordingList.toString());
 
             recyclerView.setAdapter(mAdapter);
         }

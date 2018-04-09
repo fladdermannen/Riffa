@@ -9,7 +9,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.example.absol.riffa.RegisterActivity">
+    tools:context="com.example.absol.riffa.RegisterActivity"
+    android:background="@color/title">
 
     <!-- Login progress -->
     <ProgressBar
@@ -21,6 +22,7 @@
         android:visibility="gone" />
 
     <ScrollView
+        android:background="@drawable/guitarguy"
         android:id="@+id/register_form"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -41,6 +43,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName"
+                    android:singleLine="true"
+                    android:textSize="32sp"
+                    android:textColor="@color/textColor"
+                    android:textColorHint="@color/textColor"
                     android:hint="@string/register_first_name"/>
             </android.support.design.widget.TextInputLayout>
 
@@ -53,6 +59,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="textPersonName"
+                    android:singleLine="true"
+                    android:textSize="32sp"
+                    android:textColor="@color/textColor"
+                    android:textColorHint="@color/textColor"
                     android:hint="@string/register_last_name"/>
             </android.support.design.widget.TextInputLayout>
 
@@ -65,8 +75,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/prompt_email"
+                    android:textColor="@color/textColor"
+                    android:textColorHint="@color/textColor"
                     android:inputType="textEmailAddress"
                     android:maxLines="1"
+                    android:textSize="32sp"
                     android:singleLine="true" />
 
             </android.support.design.widget.TextInputLayout>
@@ -80,7 +93,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/choose_password"
+                    android:textColor="@color/textColor"
+                    android:textColorHint="@color/textColor"
                     android:imeActionId="6"
+                    android:textSize="32sp"
                     android:imeActionLabel="@string/action_sign_in_short"
                     android:imeOptions="actionUnspecified"
                     android:inputType="textPassword"

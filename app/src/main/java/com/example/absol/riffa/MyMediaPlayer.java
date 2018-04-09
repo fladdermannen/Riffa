@@ -47,14 +47,9 @@ public class MyMediaPlayer extends AppCompatActivity {
     private ImageView iv;
     private static MediaPlayer mPlayer = null;
 
-    private double startTime = 0;
-    private double finalTime = 0;
-
-    private Handler mHandler = new Handler();
-    private int forwardTime = 5000;
-    private int backwardTime = 5000;
-
-    private int oneTimeOnly = 0;
+    private static boolean stopHandler = false;
+    private static Handler mSeekbarUpdateHandler;
+    private static Runnable mUpdateSeekbar;
 
     int currentPosition;
 
@@ -64,6 +59,7 @@ public class MyMediaPlayer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player);
+        stopHandler = false;
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -83,6 +79,13 @@ public class MyMediaPlayer extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
+            }
+        });
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -153,7 +156,6 @@ public class MyMediaPlayer extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -166,9 +168,10 @@ public class MyMediaPlayer extends AppCompatActivity {
          * fragment.
          */
 
-        private SeekBar seekbar;
         private TextView textGenre, textLength, textExtra, textTitle;
 
+        private SeekBar seekbar;
+        private int duration;
 
         private static final String ARG_SECTION_NUMBER = "section_number";
 
@@ -193,6 +196,10 @@ public class MyMediaPlayer extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_media_player, container, false);
 
+            int current = getArguments().getInt(ARG_SECTION_NUMBER)-1;
+            Recording rec = recordings.get(current);
+
+            duration = rec.getLength();
 
             bPause = rootView.findViewById(R.id.btnPause);
             bForward = rootView.findViewById(R.id.btnForward);
@@ -205,16 +212,47 @@ public class MyMediaPlayer extends AppCompatActivity {
             textTitle = rootView.findViewById(R.id.text_title);
 
             seekbar = rootView.findViewById(R.id.seekBar);
-            seekbar.setClickable(false);
+            seekbar.setMax(duration);
+
+            mSeekbarUpdateHandler = new Handler();
+            mUpdateSeekbar = new Runnable() {
+                @Override
+                public void run() {
+                    if(!stopHandler) {
+                        Log.d(TAG, "run: fuck you");
+                        seekbar.setProgress(mPlayer.getCurrentPosition());
+                        mSeekbarUpdateHandler.postDelayed(this, 50);
+                    }
+                }
+            };
+
+            mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
+
+            seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    if (fromUser)
+                        mPlayer.seekTo(progress);
+                }
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+
+
             bPause.setEnabled(false);
 
-            int current = getArguments().getInt(ARG_SECTION_NUMBER)-1;
-            Recording rec = recordings.get(current);
             textTitle.setText(rec.getTitle());
             textLength.setText(String.valueOf(rec.getLength()));
             textGenre.setText(rec.getGenre());
 
             return rootView;
+        }
+        public void updateSeekbar() {
+            seekbar.setMax(mPlayer.getDuration());
         }
 
         @Override
@@ -252,15 +290,15 @@ public class MyMediaPlayer extends AppCompatActivity {
 
     @Override
     public void onStop() {
-        super.onStop();
-
         if (mPlayer != null) {
             mPlayer.release();
             mPlayer = null;
         }
+
+        super.onStop();
     }
 
-    private static void startPlaying(String url) {
+    private void startPlaying(String url) {
         mPlayer = new MediaPlayer();
         try {
             mPlayer.setDataSource(url);
@@ -269,6 +307,16 @@ public class MyMediaPlayer extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
+
+        mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
+            }
+        });
+
     }
 
     private static void stopPlaying() {
@@ -279,4 +327,12 @@ public class MyMediaPlayer extends AppCompatActivity {
     public interface Callback {
         void onPageChanged();
     }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause: called");
+        stopHandler = true;
+        super.onPause();
+    }
+
 }

@@ -14,6 +14,8 @@ import android.media.MediaRecorder;
 import android.media.audiofx.Visualizer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -23,8 +25,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Chronometer;
 import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -73,12 +75,15 @@ public class AudioRecord extends AppCompatActivity {
     private Recording newRec;
     private ImageButton mBtn;
     private boolean mStartRecording;
+    private Chronometer chronometer;
 
     private Dialog mDialog;
     private Dialog mSaveDialog;
     private Button btnDelete, btnSave, btnPlay;
     private TextView txtClose;
     private SeekBar seek;
+    private Handler mSeekbarUpdateHandler;
+    private Runnable mUpdateSeekbar;
 
     private TextView titleEdit;
     private TextView genreEdit;
@@ -193,7 +198,6 @@ public class AudioRecord extends AppCompatActivity {
     }
 
     private void startPlaying() {
-        //String url = newRec.getLink();
 
         mPlayer = new MediaPlayer();
         try {
@@ -204,11 +208,15 @@ public class AudioRecord extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        seek.setMax(mPlayer.getDuration());
+        mSeekbarUpdateHandler.postDelayed(mUpdateSeekbar, 0);
+
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                btnPlay.setText("Play");
+                btnPlay.setBackgroundResource(R.drawable.ic_play_filled);
                 mVisualizer.setEnabled(false);
+                mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
             }
         });
     }
@@ -305,6 +313,7 @@ public class AudioRecord extends AppCompatActivity {
         if(checkAndRequestPermissions()) {
 
             mBtn = findViewById(R.id.imageButton);
+            chronometer = findViewById(R.id.chronometer);
             mDialog = new Dialog(this);
             mSaveDialog = new Dialog(this);
             mStorageRef = FirebaseStorage.getInstance().getReference();
@@ -324,8 +333,12 @@ public class AudioRecord extends AppCompatActivity {
                     onRecord(mStartRecording);
                     if (mStartRecording) {
                         v.setBackgroundResource(R.drawable.ic_stop_filled);
+                        chronometer.setBase(SystemClock.elapsedRealtime());
+                        chronometer.start();
                         //setText("Stop recording");
                     } else {
+                        chronometer.stop();
+                        chronometer.setBase(SystemClock.elapsedRealtime());
                         showPopup(v);
                         v.setBackgroundResource(R.drawable.ic_record_disc);
                         //setText("Start recording");
@@ -351,9 +364,6 @@ public class AudioRecord extends AppCompatActivity {
     }
 
     public void showPopup(View v) {
-        startPlaying();
-        mPlayer.setLooping(false);
-
         mDialog.setContentView(R.layout.popup_recording);
         visualizerView = (MyVisualizer) mDialog.findViewById(R.id.visualizer);
 
@@ -363,9 +373,30 @@ public class AudioRecord extends AppCompatActivity {
         btnPlay = mDialog.findViewById(R.id.btnPlay);
         seek = mDialog.findViewById(R.id.popupSeekbar);
 
-        seek.setVisibility(ProgressBar.VISIBLE);
-        seek.setProgress(0);
-        seek.setMax(mPlayer.getDuration());
+        mSeekbarUpdateHandler = new Handler();
+        mUpdateSeekbar = new Runnable() {
+            @Override
+            public void run() {
+                seek.setProgress(mPlayer.getCurrentPosition());
+                mSeekbarUpdateHandler.postDelayed(this,50);
+            }
+        };
+        startPlaying();
+        mPlayer.setLooping(false);
+
+        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser)
+                    mPlayer.seekTo(progress);
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
+        });
 
         setupVisualizerFxAndUI();
         mVisualizer.setEnabled(true);
@@ -377,11 +408,11 @@ public class AudioRecord extends AppCompatActivity {
                     startPlaying();
                     setupVisualizerFxAndUI();
                     mVisualizer.setEnabled(true);
-                    btnPlay.setText("Stop");
+                    btnPlay.setBackgroundResource(R.drawable.ic_stop_filled);
                 } else if(mPlayer.isPlaying()) {
                     mPlayer.stop();
                     mVisualizer.setEnabled(false);
-                    btnPlay.setText("Play");
+                    btnPlay.setBackgroundResource(R.drawable.ic_play_filled);
                 }
             }
         });

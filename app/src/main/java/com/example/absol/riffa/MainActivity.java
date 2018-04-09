@@ -19,7 +19,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -56,6 +60,20 @@ public class MainActivity extends AppCompatActivity
 
         auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();
+
+        //Check user
+        FirebaseUser user = auth.getCurrentUser(); // mAuth is your current firebase auth instance
+        user.getToken(true).addOnCompleteListener(this, new OnCompleteListener<GetTokenResult>() {
+            @Override
+            public void onComplete(@NonNull Task<GetTokenResult> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "token=" + task.getResult().getToken());
+                } else {
+                    Log.e(TAG, "exception=" +task.getException().toString());
+                }
+            }
+        });
+
         Log.d(TAG, "onCreate: current user is " + auth.getCurrentUser().getDisplayName());
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_INTERNET_PERMISSION);

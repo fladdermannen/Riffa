@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,6 +41,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     private static final String TAG = "Patrik";
     private FirebaseAuth auth;
     private String userID;
+    private boolean lock;
+    TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,9 +50,12 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         setContentView(R.layout.activity_gallery);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        textView = findViewById(R.id.textViewHidden);
+        lock = false;
         auth = FirebaseAuth.getInstance();
         userID = auth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance();
+
         mReference= mDatabase.getReference().child("Users").child(userID).child("Recordings");
         prepareRecordingData();
 
@@ -80,22 +86,26 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
 
     }
 
+
     @Override
     public void onRecordingSelected(Recording rec) {
-        Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", access is " + rec.getAccess(), Toast.LENGTH_LONG).show();
+        if(!lock) {
+            lock = true;
+            Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", access is " + rec.getAccess(), Toast.LENGTH_LONG).show();
 
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("recordings", recordingList);
-        Bundle bundle2 = new Bundle();
-        bundle2.putSerializable("current", rec);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("recordings", recordingList);
+            Bundle bundle2 = new Bundle();
+            bundle2.putSerializable("current", rec);
 
-        Intent intent = new Intent(this, MyMediaPlayer.class);
-        intent.putExtras(bundle);
-        intent.putExtras(bundle2);
-        intent.putExtra("position", recordingList.indexOf(rec));
+            Intent intent = new Intent(this, MyMediaPlayer.class);
+            intent.putExtras(bundle);
+            intent.putExtras(bundle2);
+            intent.putExtra("position", recordingList.indexOf(rec));
 
 
-        startActivity(intent);
+            startActivity(intent);
+        }
 
     }
 
@@ -161,6 +171,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "onDataChange GALLERY: checking database");
                 showData(dataSnapshot);
+                if(recordingList.isEmpty())
+                    textView.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -176,9 +188,13 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             recordingList.add(rec);
             Log.d(TAG, "showData: GALLERY" + recordingList.toString());
 
+            textView.setVisibility(View.INVISIBLE);
             recyclerView.setAdapter(mAdapter);
         }
     }
+
+
+
 
 
     /*private void prepareRecordingData(){

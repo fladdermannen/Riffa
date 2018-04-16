@@ -1,5 +1,6 @@
 package com.example.absol.riffa;
 
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -14,6 +15,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -43,6 +45,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     private String userID;
     private boolean lock;
     TextView textView;
+    TextView textViewDelete;
+    Dialog deleteDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +59,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         auth = FirebaseAuth.getInstance();
         userID = auth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance();
+        deleteDialog = new Dialog(this);
 
         mReference= mDatabase.getReference().child("Users").child(userID).child("Recordings");
         prepareRecordingData();
@@ -71,8 +76,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*Intent fabIntent = new Intent(GalleryActivity.this, AudioRecord.class);
-                startActivity(fabIntent); */
+                Intent fabIntent = new Intent(GalleryActivity.this, AudioRecord.class);
+                startActivity(fabIntent);
             }
         });
 
@@ -84,8 +89,32 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
 
+        ItemTouchHelper.SimpleCallback itemtouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                mAdapter.onItemRemove(viewHolder, recyclerView);
+            }
+        };
+
+        new ItemTouchHelper(itemtouchHelperCallback).attachToRecyclerView(recyclerView);
     }
 
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy: destroyed");
+        super.onDestroy();
+    }
+    @Override
+    public void onPause() {
+        mAdapter.deleteItems();
+        super.onPause();
+    }
 
     @Override
     public void onRecordingSelected(Recording rec) {
@@ -171,8 +200,6 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "onDataChange GALLERY: checking database");
                 showData(dataSnapshot);
-                if(recordingList.isEmpty())
-                    textView.setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -183,14 +210,19 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     }
 
     private void showData(DataSnapshot dataSnapshot) {
+        recordingList.clear();
         for(DataSnapshot ds : dataSnapshot.getChildren()) {
             Recording rec = ds.getValue(Recording.class);
             recordingList.add(rec);
             Log.d(TAG, "showData: GALLERY" + recordingList.toString());
 
-            textView.setVisibility(View.INVISIBLE);
-            recyclerView.setAdapter(mAdapter);
         }
+        if(recordingList.size()==0) {
+            textView.setVisibility(View.VISIBLE);
+        } else {
+            textView.setVisibility(View.INVISIBLE);
+        }
+        recyclerView.setAdapter(mAdapter);
     }
 
 

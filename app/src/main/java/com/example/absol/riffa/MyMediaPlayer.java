@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -17,10 +18,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.Chronometer;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,7 +50,7 @@ public class MyMediaPlayer extends AppCompatActivity {
     private ViewPager mViewPager;
     private Recording currentRec;
     private static ArrayList<Recording> recordings = new ArrayList<>();
-    private static Button bPause, bForward, bBack, bRewind;
+
     private ImageView iv;
     private static MediaPlayer mPlayer = null;
 
@@ -87,6 +94,7 @@ public class MyMediaPlayer extends AppCompatActivity {
             }
         });
 
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
@@ -98,7 +106,6 @@ public class MyMediaPlayer extends AppCompatActivity {
         // Create the adapter that will return a fragment for each of the
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-
 
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.container);
@@ -136,7 +143,6 @@ public class MyMediaPlayer extends AppCompatActivity {
         });
 
 
-
         Log.d(TAG, "onCreate:MEDIAPLAYER " + recordings);
     }
 
@@ -168,10 +174,18 @@ public class MyMediaPlayer extends AppCompatActivity {
          * fragment.
          */
 
-        private TextView textGenre, textLength, textExtra, textTitle;
-
+        private TextView textGenre, textTitle;
+        public Chronometer chrono2;
+        private ImageButton bPlayPause, bStop;
+        private ImageButton bFavorite;
         private SeekBar seekbar;
         private int duration;
+        private boolean isFavorite;
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference mRef;
+        private String userId;
 
         private static final String ARG_SECTION_NUMBER = "section_number";
 
@@ -197,31 +211,53 @@ public class MyMediaPlayer extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_media_player, container, false);
 
             int current = getArguments().getInt(ARG_SECTION_NUMBER)-1;
-            Recording rec = recordings.get(current);
+            final Recording rec = recordings.get(current);
+            final String url = rec.getLink();
+            userId = user.getUid();
+            mRef = FirebaseDatabase.getInstance().getReference().child("Users").child(userId).child("Recordings").child(rec.getKey());
 
             duration = rec.getLength();
-
-            bPause = rootView.findViewById(R.id.btnPause);
-            bForward = rootView.findViewById(R.id.btnForward);
-            bBack = rootView.findViewById(R.id.btnBack);
-            bRewind = rootView.findViewById(R.id.btnRewind);
+            isFavorite = rec.getFavorite();
+            bPlayPause = rootView.findViewById(R.id.btnPlayPause);
+            bStop = rootView.findViewById(R.id.btnStop);
+            bFavorite = (ImageButton) rootView.findViewById(R.id.btnFavorite);
 
             textGenre = rootView.findViewById(R.id.textView2);
-            textLength = rootView.findViewById(R.id.textView3);
-            textExtra = rootView.findViewById(R.id.textView4);
+            chrono2 = rootView.findViewById(R.id.chrono2);
             textTitle = rootView.findViewById(R.id.text_title);
 
             seekbar = rootView.findViewById(R.id.seekBar);
             seekbar.setMax(duration);
 
+            bPlayPause.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mPlayer == null || (mPlayer != null && !mPlayer.isPlaying())) {
+                        startPlaying(url);
+                    }
+                }
+            });
+
+            bStop.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(mPlayer.isPlaying() && mPlayer != null) {
+                        mPlayer.stop();
+                    }
+                }
+            });
+
+            Log.d(TAG, "onCreateView: HANDLER HERE");
             mSeekbarUpdateHandler = new Handler();
             mUpdateSeekbar = new Runnable() {
                 @Override
                 public void run() {
                     if(!stopHandler) {
-                        Log.d(TAG, "run: fuck you");
                         seekbar.setProgress(mPlayer.getCurrentPosition());
                         mSeekbarUpdateHandler.postDelayed(this, 50);
+                        if(!mPlayer.isPlaying()) {
+                            seekbar.setProgress(0);
+                        }
                     }
                 }
             };
@@ -242,23 +278,37 @@ public class MyMediaPlayer extends AppCompatActivity {
                 }
             });
 
+            bFavorite.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    rec.setFavorite(!rec.getFavorite());
+                    isFavorite = !isFavorite;
+                    Log.d(TAG, "onClick: " + rec.getFavorite());
+                    if(!isFavorite) {
+                        bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
+                    } else {
+                        bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
+                    }
 
-            bPause.setEnabled(false);
+                }
+            });
 
             textTitle.setText(rec.getTitle());
-            textLength.setText(String.valueOf(rec.getLength()));
+            chrono2.setBase(SystemClock.elapsedRealtime() - (rec.getLength()) );
             textGenre.setText(rec.getGenre());
+            if(isFavorite) {
+                bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
+            } else {
+                bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
+            }
 
             return rootView;
         }
-        public void updateSeekbar() {
-            seekbar.setMax(mPlayer.getDuration());
-        }
-
         @Override
         public void onPageChanged() {
             stopPlaying();
         }
+
     }
 
     /**
@@ -298,7 +348,7 @@ public class MyMediaPlayer extends AppCompatActivity {
         super.onStop();
     }
 
-    private void startPlaying(String url) {
+    private static void startPlaying(String url) {
         mPlayer = new MediaPlayer();
         try {
             mPlayer.setDataSource(url);
@@ -316,12 +366,14 @@ public class MyMediaPlayer extends AppCompatActivity {
                 mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
             }
         });
-
     }
 
+
     private static void stopPlaying() {
-        mPlayer.release();
-        mPlayer = null;
+        if(mPlayer != null) {
+            mPlayer.release();
+            mPlayer = null;
+        }
     }
 
     public interface Callback {

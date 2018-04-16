@@ -29,7 +29,7 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <TextView
+    <Chronometer
         android:id="@+id/length"
         android:textColor="@color/length"
         android:layout_width="match_parent"

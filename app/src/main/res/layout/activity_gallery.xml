@@ -42,6 +42,7 @@
         android:layout_height="match_parent"
         android:text="@string/empty_gallery"
         android:textColor="@color/textColor"
+        android:textSize="24sp"
         android:gravity="center"
         android:visibility="invisible"/>
 

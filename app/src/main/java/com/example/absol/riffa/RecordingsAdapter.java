@@ -1,14 +1,27 @@
 package com.example.absol.riffa;
 
 import android.content.Context;
+import android.os.SystemClock;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Chronometer;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -18,7 +31,11 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
     private Context context;
     private ArrayList<Recording> recordingsList;
     private ArrayList<Recording> recordingsListFull;
+    private ArrayList<Recording> recordingsToDelete = new ArrayList<>();
     private RecordingsAdapterListener listener;
+    private DatabaseReference mRef = FirebaseDatabase.getInstance().getReference();
+    private FirebaseAuth auth = FirebaseAuth.getInstance();
+    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
     public interface RecordingsAdapterListener {
         void onRecordingSelected(Recording rec);
@@ -26,13 +43,14 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView title, genre, length, date;
+        private TextView title, genre, date;
+        private Chronometer length;
         private ImageButton access;
 
         public MyViewHolder(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.title);
-            length = (TextView) view.findViewById(R.id.length);
+            length = view.findViewById(R.id.length);
             genre = (TextView) view.findViewById(R.id.genre);
             date = (TextView) view.findViewById(R.id.date);
             access = view.findViewById(R.id.padlock);
@@ -76,7 +94,7 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
         Recording recording = recordingsList.get(position);
 
         holder.title.setText(recording.getTitle());
-        holder.length.setText(String.valueOf(recording.getLength()));
+        holder.length.setBase(SystemClock.elapsedRealtime() - (recording.getLength()));
         holder.genre.setText(recording.getGenre());
         holder.date.setText(recording.getDate());
         if(!recording.getAccess())
@@ -126,5 +144,54 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
         };
     }
 
+    private static final String TAG = "Patrik";
+
+    public void onItemRemove(final RecyclerView.ViewHolder viewHolder, final RecyclerView recyclerView) {
+        final int adapterPosition = viewHolder.getAdapterPosition();
+        final Recording rec = recordingsListFull.get(adapterPosition);
+        Snackbar snackbar = Snackbar.make(recyclerView, "RECORDING REMOVED\n", Snackbar.LENGTH_LONG)
+                .setAction("UNDO \n", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d("Patrik", "onClick: " + adapterPosition);
+
+                        recordingsListFull.add(adapterPosition, rec);
+                        notifyItemInserted(adapterPosition);
+                        recyclerView.scrollToPosition(adapterPosition);
+                        recordingsToDelete.remove(rec);
+                    }
+                });
+
+        snackbar.show();
+        Log.d(TAG, "onItemRemove: "+ adapterPosition);
+        recordingsListFull.remove(adapterPosition);
+        notifyItemRemoved(adapterPosition);
+        recordingsToDelete.add(rec);
+    }
+
+    public void deleteItems() {
+
+        if(recordingsToDelete.size() != 0) {
+            String uid = currentUser.getUid();
+            for (Recording rec : recordingsToDelete) {
+                String title = rec.getTitle();
+                Query deleteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("title").equalTo(title);
+
+                deleteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot deleteSnapshot : dataSnapshot.getChildren()) {
+                            deleteSnapshot.getRef().removeValue();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: delete failed", databaseError.toException());
+                    }
+                });
+            }
+        }
+    }
 }
 

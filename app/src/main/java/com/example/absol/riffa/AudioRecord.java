@@ -51,6 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static android.media.MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED;
+
 public class AudioRecord extends AppCompatActivity {
     private MyVisualizer visualizerView;
     private Visualizer mVisualizer;
@@ -79,11 +81,13 @@ public class AudioRecord extends AppCompatActivity {
 
     private Dialog mDialog;
     private Dialog mSaveDialog;
-    private Button btnDelete, btnSave, btnPlay;
+    private Button btnDelete, btnSave;
+    private ImageButton btnPlay;
     private TextView txtClose;
     private SeekBar seek;
     private Handler mSeekbarUpdateHandler;
     private Runnable mUpdateSeekbar;
+    boolean stopHandler = false;
 
     private TextView titleEdit;
     private TextView genreEdit;
@@ -214,7 +218,7 @@ public class AudioRecord extends AppCompatActivity {
         mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                btnPlay.setBackgroundResource(R.drawable.ic_play_filled);
+                btnPlay.setImageResource(R.drawable.ic_play_filled);
                 mVisualizer.setEnabled(false);
                 mSeekbarUpdateHandler.removeCallbacks(mUpdateSeekbar);
             }
@@ -232,7 +236,7 @@ public class AudioRecord extends AppCompatActivity {
         mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mRecorder.setOutputFile(mFileName);
         mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
+        mRecorder.setMaxDuration(30000);
         try {
             mRecorder.prepare();
         } catch (IOException e) {
@@ -240,6 +244,19 @@ public class AudioRecord extends AppCompatActivity {
         }
 
         mRecorder.start();
+        mRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+            @Override
+            public void onInfo(MediaRecorder mr, int what, int extra) {
+                if(what==MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                    stopRecording();
+                    chronometer.stop();
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+                    mBtn.setBackgroundResource(R.drawable.ic_record_disc);
+                    showPopup(chronometer);
+                    mStartRecording = true;
+                }
+            }
+        });
     }
 
     private void uploadAudio(final String title, final int length, final String genre, final String date) {
@@ -260,9 +277,11 @@ public class AudioRecord extends AppCompatActivity {
                         // Get a URL to the uploaded content
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
 
-                        newRec = new Recording(title, length, genre, date, downloadUrl.toString());
+                        DatabaseReference pushedRef = myRef.child("Users").child(userId).child("Recordings").push();
+                        String key = pushedRef.getKey();
 
-                        myRef.child("Users").child(userId).child("Recordings").push().setValue(newRec);
+                        newRec = new Recording(title, length, genre, date, downloadUrl.toString(), key);
+                        pushedRef.setValue(newRec);
 
                         mProgress.dismiss();
                         Toast.makeText(AudioRecord.this, "Recording complete", Toast.LENGTH_SHORT).show();
@@ -303,6 +322,7 @@ public class AudioRecord extends AppCompatActivity {
         finish();
         return true;
     }
+
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -351,7 +371,8 @@ public class AudioRecord extends AppCompatActivity {
 
     @Override
     public void onStop() {
-        super.onStop();
+        Log.d(TAG, "onStop: called onstop");
+
         if (mRecorder != null) {
             mRecorder.release();
             mRecorder = null;
@@ -361,9 +382,12 @@ public class AudioRecord extends AppCompatActivity {
             mPlayer.release();
             mPlayer = null;
         }
+        super.onStop();
     }
 
     public void showPopup(View v) {
+
+        stopHandler = false;
         mDialog.setContentView(R.layout.popup_recording);
         visualizerView = (MyVisualizer) mDialog.findViewById(R.id.visualizer);
 
@@ -377,8 +401,10 @@ public class AudioRecord extends AppCompatActivity {
         mUpdateSeekbar = new Runnable() {
             @Override
             public void run() {
-                seek.setProgress(mPlayer.getCurrentPosition());
-                mSeekbarUpdateHandler.postDelayed(this,50);
+                if(!stopHandler) {
+                    seek.setProgress(mPlayer.getCurrentPosition());
+                    mSeekbarUpdateHandler.postDelayed(this, 50);
+                }
             }
         };
         startPlaying();
@@ -408,11 +434,11 @@ public class AudioRecord extends AppCompatActivity {
                     startPlaying();
                     setupVisualizerFxAndUI();
                     mVisualizer.setEnabled(true);
-                    btnPlay.setBackgroundResource(R.drawable.ic_stop_filled);
+                    btnPlay.setImageResource(R.drawable.ic_stop_filled);
                 } else if(mPlayer.isPlaying()) {
                     mPlayer.stop();
                     mVisualizer.setEnabled(false);
-                    btnPlay.setBackgroundResource(R.drawable.ic_play_filled);
+                    btnPlay.setImageResource(R.drawable.ic_play_filled);
                 }
             }
         });
@@ -422,6 +448,7 @@ public class AudioRecord extends AppCompatActivity {
             public void onClick(View v) {
                 onStop();
                 mVisualizer.setEnabled(false);
+                stopHandler = true;
                 mDialog.dismiss();
             }
         });
@@ -430,6 +457,7 @@ public class AudioRecord extends AppCompatActivity {
             public void onClick(View v) {
                 onStop();
                 mVisualizer.setEnabled(false);
+                stopHandler = true;
                 mDialog.dismiss();
             }
         });
@@ -438,6 +466,7 @@ public class AudioRecord extends AppCompatActivity {
             public void onClick(View v) {
                 mDialog.dismiss();
                 mVisualizer.setEnabled(false);
+                stopHandler = true;
                 showSavePopup(v);
             }
         });
@@ -529,4 +558,9 @@ public class AudioRecord extends AppCompatActivity {
                 }, Visualizer.getMaxCaptureRate() / 2, true, false);
     }
 
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestroy: destroyed");
+        super.onDestroy();
+    }
 }

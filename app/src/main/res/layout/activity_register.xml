@@ -36,7 +36,8 @@
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:textColorHint="@color/textColor">
 
                 <EditText
                     android:id="@+id/register_first_name"
@@ -52,7 +53,8 @@
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:textColorHint="@color/textColor">
 
                 <EditText
                     android:id="@+id/register_last_name"
@@ -68,7 +70,8 @@
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:textColorHint="@color/textColor">
 
                 <EditText
                     android:id="@+id/register_email"
@@ -86,7 +89,8 @@
 
             <android.support.design.widget.TextInputLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:textColorHint="@color/textColor">
 
                 <EditText
                     android:id="@+id/register_password"

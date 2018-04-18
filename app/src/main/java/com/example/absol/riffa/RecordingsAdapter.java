@@ -32,6 +32,8 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
     private ArrayList<Recording> recordingsList;
     private ArrayList<Recording> recordingsListFull;
     private ArrayList<Recording> recordingsToDelete = new ArrayList<>();
+    private ArrayList<Recording> recordingsMakePrivate = new ArrayList<>();
+    private ArrayList<Recording> recordingsMakePublic = new ArrayList<>();
     private RecordingsAdapterListener listener;
     private DatabaseReference mRef = FirebaseDatabase.getInstance().getReference();
     private FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -149,8 +151,8 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
     public void onItemRemove(final RecyclerView.ViewHolder viewHolder, final RecyclerView recyclerView) {
         final int adapterPosition = viewHolder.getAdapterPosition();
         final Recording rec = recordingsListFull.get(adapterPosition);
-        Snackbar snackbar = Snackbar.make(recyclerView, "RECORDING REMOVED\n", Snackbar.LENGTH_LONG)
-                .setAction("UNDO \n", new View.OnClickListener() {
+        Snackbar snackbar = Snackbar.make(recyclerView, "RECORDING REMOVED", Snackbar.LENGTH_LONG)
+                .setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Log.d("Patrik", "onClick: " + adapterPosition);

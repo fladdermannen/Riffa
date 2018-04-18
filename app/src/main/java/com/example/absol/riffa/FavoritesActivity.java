@@ -12,9 +12,18 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 
@@ -24,6 +33,11 @@ public class FavoritesActivity extends AppCompatActivity implements FavoritesAda
     private RecyclerView recyclerView;
     private FavoritesAdapter mAdapter;
     private SearchView searchView;
+    DatabaseReference mReference;
+    FirebaseAuth auth = FirebaseAuth.getInstance();
+    FirebaseUser user = auth.getCurrentUser();
+    String userId;
+    private static final String TAG = "Patrik";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,13 +46,16 @@ public class FavoritesActivity extends AppCompatActivity implements FavoritesAda
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        userId = user.getUid();
+        mReference = FirebaseDatabase.getInstance().getReference().child("Users").child(userId).child("Recordings");
+
+        prepareRecordingData();
+
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             // Show the Up button in the action bar.
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
-
-        //prepareFavoritesData();
 
         recyclerView = (RecyclerView) findViewById(R.id.favorites_recycler_view);
         mAdapter = new FavoritesAdapter(this, favoritesList, this);
@@ -54,12 +71,6 @@ public class FavoritesActivity extends AppCompatActivity implements FavoritesAda
         Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() , Toast.LENGTH_LONG).show();
     }
 
-
-    /*@Override
-    public boolean onSupportNavigateUp() {
-        finish();
-        return true;
-    } */
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -102,31 +113,38 @@ public class FavoritesActivity extends AppCompatActivity implements FavoritesAda
         return true;
     }
 
+    public void prepareRecordingData() {
 
-    /*private void prepareFavoritesData(){
-        Recording rec = new Recording("Test", "3.14", "shit", "2018-03-17");
-        favoritesList.add(rec);
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "onDataChange FAVORITES: checking database");
+                showData(dataSnapshot);
+            }
 
-        rec = new Recording("New", "4.20", "cool", "2018-03-12");
-        favoritesList.add(rec);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-11");
-        favoritesList.add(rec);
+            }
+        });
+    }
 
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-01-17");
-        favoritesList.add(rec);
+    private void showData(DataSnapshot dataSnapshot) {
+        favoritesList.clear();
 
-        rec = new Recording("fuccboi", "4.33", "genre", "2018-03-20");
-        favoritesList.add(rec);
+        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+            Recording rec = ds.getValue(Recording.class);
+            if(rec.getFavorite()) {
+                favoritesList.add(rec);
+            }
+            Log.d(TAG, "showData: GALLERY" + favoritesList.toString());
 
-        rec = new Recording("Hejhej", "3.33", "fibjofab", "2018-01-12");
-        favoritesList.add(rec);
-
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-17");
-        favoritesList.add(rec);
-
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-03-30");
-        favoritesList.add(rec);
-
-    } */
+        }
+        /*if(favoritesList.size()==0) {
+            textView.setVisibility(View.VISIBLE);
+        } else {
+            textView.setVisibility(View.INVISIBLE);
+        }*/
+        recyclerView.setAdapter(mAdapter);
+    }
 }

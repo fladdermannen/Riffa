@@ -1,10 +1,12 @@
 package com.example.absol.riffa;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Chronometer;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
@@ -24,12 +26,13 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.MyVi
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView title, genre, length, date;
+        private TextView title, genre, date;
+        private Chronometer length;
 
         public MyViewHolder(View view) {
             super(view);
             title = (TextView) view.findViewById(R.id.title);
-            length = (TextView) view.findViewById(R.id.length);
+            length = view.findViewById(R.id.length);
             genre = (TextView) view.findViewById(R.id.genre);
             date = (TextView) view.findViewById(R.id.date);
 
@@ -64,7 +67,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.MyVi
     public void onBindViewHolder(FavoritesAdapter.MyViewHolder holder, int position) {
         Recording recording = favoritesList.get(position);
         holder.title.setText(recording.getTitle());
-        holder.length.setText(recording.getLength());
+        holder.length.setBase(SystemClock.elapsedRealtime() - (recording.getLength()));
         holder.genre.setText(recording.getGenre());
         holder.date.setText(recording.getDate());
     }

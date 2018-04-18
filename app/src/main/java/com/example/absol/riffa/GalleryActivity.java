@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -28,6 +29,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -35,6 +37,8 @@ import java.util.ArrayList;
 public class GalleryActivity extends AppCompatActivity implements RecordingsAdapter.RecordingsAdapterListener{
 
     private ArrayList<Recording> recordingList = new ArrayList<>();
+    private ArrayList<Recording> recordingsMakePrivate = new ArrayList<>();
+    private ArrayList<Recording> recordingsMakePublic = new ArrayList<>();
     private RecyclerView recyclerView;
     private RecordingsAdapter mAdapter;
     private SearchView searchView;
@@ -60,6 +64,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         userID = auth.getCurrentUser().getUid();
         mDatabase = FirebaseDatabase.getInstance();
         deleteDialog = new Dialog(this);
+        recordingsMakePrivate.clear();
+        recordingsMakePublic.clear();
 
         mReference= mDatabase.getReference().child("Users").child(userID).child("Recordings");
         prepareRecordingData();
@@ -113,6 +119,8 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     @Override
     public void onPause() {
         mAdapter.deleteItems();
+        makeAccessPrivate();
+        makeAccessPublic();
         super.onPause();
     }
 
@@ -186,10 +194,18 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         if(!check) {
             rec.setAccess(true);
             view.setBackgroundResource(R.drawable.ic_lock_unlocked);
+            recordingsMakePublic.add(rec);
+            recordingsMakePrivate.remove(rec);
+            Snackbar snackbar = Snackbar.make(recyclerView, "Access set to public.\nAnyone can find your recording.", Snackbar.LENGTH_SHORT);
+            snackbar.show();
         }
         else {
             rec.setAccess(false);
             view.setBackgroundResource(R.drawable.ic_lock);
+            recordingsMakePrivate.add(rec);
+            recordingsMakePublic.remove(rec);
+            Snackbar snackbar = Snackbar.make(recyclerView, "Access set to private.", Snackbar.LENGTH_SHORT);
+            snackbar.show();
         }
     }
 
@@ -225,58 +241,49 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         recyclerView.setAdapter(mAdapter);
     }
 
+    private void makeAccessPublic() {
+        if(recordingsMakePublic.size() > 0) {
+            for(Recording rec : recordingsMakePublic) {
+                String key = rec.getKey();
+                Query publicQuery = mReference.orderByChild("key").equalTo(key);
 
+                publicQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot publicSnapshot : dataSnapshot.getChildren()) {
+                            publicSnapshot.getRef().child("access").setValue(true);
+                        }
+                    }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: ", databaseError.toException());
+                    }
+                });
+            }
+        }
+    }
 
+    private void makeAccessPrivate() {
+        if(recordingsMakePrivate.size() > 0) {
+            for(Recording rec : recordingsMakePrivate) {
+                String key = rec.getKey();
+                Query privateQuery = mReference.orderByChild("key").equalTo(key);
 
-    /*private void prepareRecordingData(){
-        Recording rec = new Recording("Test", "3.14", "shit", "2018-03-17");
-        recordingList.add(rec);
+                privateQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot privateSnapshot : dataSnapshot.getChildren()) {
+                            privateSnapshot.getRef().child("access").setValue(false);
+                        }
+                    }
 
-        rec = new Recording("New", "4.20", "cool", "2018-03-12");
-        recordingList.add(rec);
-
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-11");
-        recordingList.add(rec);
-
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-01-17");
-        recordingList.add(rec);
-
-        rec = new Recording("fuccboi", "4.33", "genre", "2018-03-20");
-        recordingList.add(rec);
-
-        rec = new Recording("Hejhej", "3.33", "fibjofab", "2018-01-12");
-        recordingList.add(rec);
-
-        rec = new Recording("New", "4.20", "cool", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-03-30");
-        recordingList.add(rec);
-
-        rec = new Recording("crapcrap", "4.33", "mesah", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Hejhej", "3.33", "fixxx", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("New", "4.20", "cool", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Blabla", "5.55", "trash", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Banana banana", "4.20", "oijasdio", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("fisk", "4.33", "aqua", "2018-03-17");
-        recordingList.add(rec);
-
-        rec = new Recording("Hejhej", "3.33", "fibble", "2018-03-17");
-        recordingList.add(rec);
-
-    } */
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: ", databaseError.toException());
+                    }
+                });
+            }
+        }
+    }
 }

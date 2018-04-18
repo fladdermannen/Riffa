@@ -26,8 +26,12 @@ import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -50,6 +54,8 @@ public class MyMediaPlayer extends AppCompatActivity {
     private ViewPager mViewPager;
     private Recording currentRec;
     private static ArrayList<Recording> recordings = new ArrayList<>();
+    private static ArrayList<Recording> addFavorites = new ArrayList<>();
+    private static ArrayList<Recording> removeFavorites = new ArrayList<>();
 
     private ImageView iv;
     private static MediaPlayer mPlayer = null;
@@ -57,6 +63,9 @@ public class MyMediaPlayer extends AppCompatActivity {
     private static boolean stopHandler = false;
     private static Handler mSeekbarUpdateHandler;
     private static Runnable mUpdateSeekbar;
+
+    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    DatabaseReference mRef = FirebaseDatabase.getInstance().getReference();
 
     int currentPosition;
 
@@ -67,6 +76,8 @@ public class MyMediaPlayer extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player);
         stopHandler = false;
+        addFavorites.clear();
+        removeFavorites.clear();
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -284,10 +295,16 @@ public class MyMediaPlayer extends AppCompatActivity {
                     rec.setFavorite(!rec.getFavorite());
                     isFavorite = !isFavorite;
                     Log.d(TAG, "onClick: " + rec.getFavorite());
-                    if(!isFavorite) {
-                        bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
-                    } else {
+                    if(isFavorite) {
                         bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
+                        addFavorites.add(rec);
+                        removeFavorites.remove(rec);
+                        Log.d(TAG, "onCreateView: ADD " + addFavorites + "REMOVE" + removeFavorites);
+                    } else {
+                        bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
+                        addFavorites.remove(rec);
+                        removeFavorites.add(rec);
+                        Log.d(TAG, "onCreateView: ADD" + addFavorites + "REMOVE" + removeFavorites);
                     }
 
                 }
@@ -384,7 +401,58 @@ public class MyMediaPlayer extends AppCompatActivity {
     public void onPause() {
         Log.d(TAG, "onPause: called");
         stopHandler = true;
+        addFavorites();
+        removeFavorites();
         super.onPause();
     }
+
+    public void addFavorites() {
+        if(addFavorites.size() > 0) {
+            String uid = user.getUid();
+            for(Recording rec : addFavorites) {
+                String key = rec.getKey();
+                Query favoriteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("key").equalTo(key);
+
+                favoriteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot favoriteSnapshot : dataSnapshot.getChildren()) {
+                            favoriteSnapshot.getRef().child("favorite").setValue(true);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: ", databaseError.toException());
+                    }
+                });
+            }
+        }
+    }
+
+    public void removeFavorites() {
+        if(removeFavorites.size() > 0) {
+            String uid = user.getUid();
+            for(Recording rec : removeFavorites) {
+                String key = rec.getKey();
+                Query favoriteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("key").equalTo(key);
+
+                favoriteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot favoriteSnapshot : dataSnapshot.getChildren()) {
+                            favoriteSnapshot.getRef().child("favorite").setValue(false);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: ", databaseError.toException());
+                    }
+                });
+            }
+        }
+    }
+
 
 }

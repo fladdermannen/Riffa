@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout
+    android:id="@+id/usersearch_ll"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:layout_width="370dp"
     android:layout_height="550dp"
     android:layout_margin="8dp"
@@ -20,6 +24,13 @@
         android:gravity="center"
         android:layout_gravity="end"
         android:background="@drawable/circlebackground"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/textColor"
+        android:textSize="18sp"
+        android:text="Search for users by name"/>
 
     <android.support.v7.widget.SearchView
         android:id="@+id/searchView"

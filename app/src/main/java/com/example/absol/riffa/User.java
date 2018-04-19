@@ -1,15 +1,17 @@
 package com.example.absol.riffa;
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class User {
+public class User implements Serializable{
 
     private String fName;
     private String lName;
     private String fullName;
     private String email;
     private String uID;
+    private ArrayList<User> contacts;
     private ArrayList<Recording> recordings;
 
     public User(String fName, String lName, String email, String uID) {
@@ -19,6 +21,7 @@ public class User {
         this.email = email;
         this.uID = uID;
         this.recordings = new ArrayList<>();
+        this.contacts = new ArrayList<>();
     }
 
     public User() {
@@ -48,4 +51,9 @@ public class User {
     public ArrayList<Recording> getRecordings() {
         return recordings;
     }
+
+    public ArrayList<User> getContacts() {
+        return contacts;
+    }
+
 }

@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -24,10 +26,18 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 
 public class ContactsActivity extends AppCompatActivity implements ContactsAdapter.ContactsAdapterListener, ContactListAdapter.ContactListAdapterListener{
-    private ArrayList<Contact> contactList = new ArrayList<>();
+    private ArrayList<User> contactList = new ArrayList<>();
     private RecyclerView recyclerView;
     private SearchView searchView;
     private ContactsAdapter mAdapter;
@@ -39,6 +49,12 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
     private ContactListAdapter mUserSearchAdapter;
 
     ArrayList<User> userList = new ArrayList<>();
+
+    private static final String TAG = "Patrik";
+
+    DatabaseReference mRef;
+    FirebaseAuth auth;
+    FirebaseUser user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +68,9 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
         mDialog = new Dialog(this);
+        auth = FirebaseAuth.getInstance();
+        user = auth.getCurrentUser();
+        mRef = FirebaseDatabase.getInstance().getReference().child("Users").child(user.getUid()).child("Contacts");
 
         prepareContactsData();
         //prepareUsersData();
@@ -71,7 +90,27 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
-        recyclerView.setAdapter(mAdapter);
+
+        ItemTouchHelper.SimpleCallback itemtouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                mAdapter.onItemRemove(viewHolder, recyclerView);
+            }
+        };
+
+        new ItemTouchHelper(itemtouchHelperCallback).attachToRecyclerView(recyclerView);
+
+    }
+
+    @Override
+    public void onPause() {
+        mAdapter.deleteItems();
+        super.onPause();
     }
 
     @Override
@@ -86,8 +125,9 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
     }
 
     @Override
-    public void onContactSelected(Contact contact) {
-        Toast.makeText(getApplicationContext(), "Selected: " + contact.getName() + ", " + contact.getEmail(), Toast.LENGTH_LONG).show();
+    public void onContactSelected(User user) {
+        Toast.makeText(getApplicationContext(), "Selected: " + user.getFullName() + ", " + user.getEmail(), Toast.LENGTH_LONG).show();
+        onUserSelected(user);
     }
 
     @Override
@@ -120,39 +160,37 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
     }
 
     private void prepareContactsData() {
-        Contact con = new Contact("Perra", "per@hotmail.com");
-        contactList.add(con);
+        mRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "onDataChange CONTACTS: checking database");
+                showData(dataSnapshot);
+            }
 
-        con = new Contact("Berra", "email.com@.com");
-        contactList.add(con);
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
 
-        con = new Contact("Ferra", "email.com@.com");
-        contactList.add(con);
-
-        con = new Contact("Lerra", "email.com@.com");
-        contactList.add(con);
-
-        con = new Contact("Gerra", "email.com@.com");
-        contactList.add(con);
+            }
+        });
     }
 
-    private void prepareUsersData() {
-        User user = new User("Gustav", "II Adolf", "kung@mail.se", "123");
-        userList.add(user);
-        user = new User("Karl", "XII", "kung@mail.se", "123");
-        userList.add(user);
-        user = new User("Gustav", "Vasa", "kung@mail.se", "123");
-        userList.add(user);
-        user = new User("Henry", "VIII", "kung@mail.se", "123");
-        userList.add(user);
+    private void showData(DataSnapshot dataSnapshot) {
+        contactList.clear();
+        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+            User user = ds.getValue(User.class);
+            contactList.add(user);
+            Log.d(TAG, "showData: GALLERY" + contactList.toString());
+        }
+
+        recyclerView.setAdapter(mAdapter);
     }
+
 
     private void showPopup() {
         mDialog.setContentView(R.layout.popup_contactsearch);
         xClose = mDialog.findViewById(R.id.dialogclose);
         mSearchView = mDialog.findViewById(R.id.searchView);
         mUserSearchRecyvlerView = mDialog.findViewById(R.id.usersearch_recyclerview);
-
 
         mUserSearchAdapter = new ContactListAdapter(this, userList, this);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -200,8 +238,7 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
             public void onDismiss(DialogInterface dialog) {
                 Log.d("Patrik", "onDismiss: ");
                 mUserSearchAdapter.clearUserList();
-            }
-        });
+            }});
 
         mDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         mDialog.show();
@@ -210,5 +247,12 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
     @Override
     public void onUserSelected(User user) {
         Toast.makeText(this, user.getfName() + " selected", Toast.LENGTH_SHORT).show();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("user", user);
+
+        Intent intent = new Intent(this, UserProfileActivity.class);
+        intent.putExtras(bundle);
+
+        startActivity(intent);
     }
 }

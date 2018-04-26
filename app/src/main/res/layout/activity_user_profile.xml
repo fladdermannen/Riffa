@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/user_profile_ll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.absol.riffa.UserProfileActivity"
-    android:background="@color/colorPrimaryDark"
-    android:orientation="vertical">
+    android:background="@color/colorPrimaryDark">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -154,7 +160,7 @@
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                android:background="@color/textColor"
+                android:tint="@color/textColor"
                 android:src="@drawable/ic_menu_gallery"/>
             <TextView
                 android:textStyle="bold"
@@ -173,10 +179,11 @@
         android:onClick="followUser"
         android:textColor="#fff"
         android:background="@drawable/buttonstylerecording"
-        android:layout_marginTop="35dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="25dp"
         android:layout_gravity="center_horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Follow Me"/>
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>

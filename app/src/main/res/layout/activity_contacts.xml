@@ -48,5 +48,15 @@
         android:backgroundTint="@color/lighterGrey"
         app:srcCompat="@drawable/ic_plustwo" />
 
+    <TextView
+        android:id="@+id/textViewHidden"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/empty_contacts"
+        android:textColor="@color/textColor"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:visibility="invisible"/>
+
 
 </android.support.design.widget.CoordinatorLayout>

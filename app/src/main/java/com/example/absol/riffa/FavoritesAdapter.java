@@ -26,7 +26,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.MyVi
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView title, genre, date;
+        private TextView title, genre, author;
         private Chronometer length;
 
         public MyViewHolder(View view) {
@@ -34,7 +34,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.MyVi
             title = (TextView) view.findViewById(R.id.title);
             length = view.findViewById(R.id.length);
             genre = (TextView) view.findViewById(R.id.genre);
-            date = (TextView) view.findViewById(R.id.date);
+            author = (TextView) view.findViewById(R.id.author);
 
 
             view.setOnClickListener(new View.OnClickListener() {
@@ -69,7 +69,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.MyVi
         holder.title.setText(recording.getTitle());
         holder.length.setBase(SystemClock.elapsedRealtime() - (recording.getLength()));
         holder.genre.setText(recording.getGenre());
-        holder.date.setText(recording.getDate());
+        holder.author.setText(recording.getAuthor());
     }
     @Override
     public int getItemCount() {

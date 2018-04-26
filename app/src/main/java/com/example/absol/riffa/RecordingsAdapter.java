@@ -2,6 +2,7 @@ package com.example.absol.riffa;
 
 import android.content.Context;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -14,6 +15,8 @@ import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -22,6 +25,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 
@@ -176,8 +181,8 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
         if(recordingsToDelete.size() != 0) {
             String uid = currentUser.getUid();
             for (Recording rec : recordingsToDelete) {
-                String title = rec.getTitle();
-                Query deleteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("title").equalTo(title);
+                String key = rec.getKey();
+                Query deleteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("key").equalTo(key);
 
                 deleteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -190,6 +195,68 @@ public class RecordingsAdapter extends RecyclerView.Adapter<RecordingsAdapter.My
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Log.e(TAG, "onCancelled: delete failed", databaseError.toException());
+                    }
+                });
+
+                Query removeFavorites = mRef.child("Users").child(uid).child("Favorites").orderByChild("key").equalTo(key);
+
+                removeFavorites.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().removeValue();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.e(TAG, "onCancelled: delete favorite failed", databaseError.toException());
+                    }
+                });
+
+                StorageReference storageRef = FirebaseStorage.getInstance().getReference().child(rec.getStorageName());
+                storageRef.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "onSuccess: file deleted");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "onFailure: did not delete file");
+                    }
+                });
+
+                DatabaseReference clickRef = FirebaseDatabase.getInstance().getReference().child("ClickCounters");
+                Query clickQuery = clickRef.orderByChild("key").equalTo(key);
+
+                clickQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().removeValue();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                DatabaseReference recentRef = FirebaseDatabase.getInstance().getReference().child("Recent");
+                Query recentQuery = recentRef.orderByChild("key").equalTo(key);
+
+                recentQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().removeValue();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
                     }
                 });
             }

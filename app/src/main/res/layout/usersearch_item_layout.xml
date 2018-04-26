@@ -6,13 +6,14 @@
     android:clickable="true"
     android:focusable="true"
     android:orientation="vertical"
-    android:paddingBottom="30dp"
+    android:paddingBottom="20dp"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="30dp">
+    android:paddingTop="20dp">
 
     <ImageView
         android:id="@+id/user_thumbnail"
+        android:tint="@color/textColor"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_centerVertical="true"

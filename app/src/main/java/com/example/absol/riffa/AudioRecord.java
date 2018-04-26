@@ -35,8 +35,12 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -96,6 +100,7 @@ public class AudioRecord extends AppCompatActivity {
     private int mLength;
     private String mDate;
 
+    private ArrayList<ClickCounter> recentCcList = new ArrayList<>();
 
     private  boolean checkAndRequestPermissions() {
         int permissionRecordAudio = ContextCompat.checkSelfPermission(this,
@@ -262,6 +267,7 @@ public class AudioRecord extends AppCompatActivity {
     private void uploadAudio(final String title, final int length, final String genre, final String date) {
 
         final String userId = auth.getCurrentUser().getUid();
+
         uniqueID = UUID.randomUUID().toString();
 
         Uri file = Uri.fromFile(new File(mFileName));
@@ -280,8 +286,14 @@ public class AudioRecord extends AppCompatActivity {
                         DatabaseReference pushedRef = myRef.child("Users").child(userId).child("Recordings").push();
                         String key = pushedRef.getKey();
 
-                        newRec = new Recording(title, length, genre, date, downloadUrl.toString(), key);
+                        newRec = new Recording(title, length, genre, date, downloadUrl.toString(), key, currentUser.getDisplayName(), uniqueID);
                         pushedRef.setValue(newRec);
+
+                        long time = System.currentTimeMillis();
+                        ClickCounter cc = new ClickCounter(key, userId, time);
+                        myRef.child("ClickCounters").push().setValue(cc);
+
+                        addRecent(cc);
 
                         mProgress.dismiss();
                         Toast.makeText(AudioRecord.this, "Recording complete", Toast.LENGTH_SHORT).show();
@@ -516,6 +528,14 @@ public class AudioRecord extends AppCompatActivity {
                     genreEdit.setError("This genre is too short");
                     focusView = genreEdit;
                     cancel = true;
+                } else if(mTitle.length() > 13) {
+                    titleEdit.setError("This title is too long");
+                    focusView = titleEdit;
+                    cancel = true;
+                } else if(mGenre.length() > 15) {
+                    genreEdit.setError("This genre is too long");
+                    focusView = genreEdit;
+                    cancel = true;
                 }
 
                 if(cancel)
@@ -539,8 +559,6 @@ public class AudioRecord extends AppCompatActivity {
     }
 
 
-
-
     private void setupVisualizerFxAndUI() {
 
         // Create the Visualizer object and attach it to our media player.
@@ -562,5 +580,47 @@ public class AudioRecord extends AppCompatActivity {
     public void onDestroy() {
         Log.d(TAG, "onDestroy: destroyed");
         super.onDestroy();
+    }
+
+    private void addRecent(ClickCounter cc) {
+        recentCcList.clear();
+        myRef.child("Recent").push().setValue(cc);
+
+        Query recentQuery = myRef.child("Recent").orderByChild("time");
+        recentQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    recentCcList.add(ds.getValue(ClickCounter.class));
+                    if(recentCcList.size()>25) {
+                        Log.d(TAG, "onDataChange: calling delete recent");
+                        deleteRecent();
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    private void deleteRecent() {
+        Query deleteQuery = myRef.child("Recent").orderByChild("key").equalTo(recentCcList.get(0).getKey());
+        deleteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    ds.getRef().removeValue();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }

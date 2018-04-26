@@ -36,7 +36,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class MyMediaPlayer extends AppCompatActivity {
+public class UserMediaPlayer extends AppCompatActivity {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -58,6 +58,7 @@ public class MyMediaPlayer extends AppCompatActivity {
     private static ArrayList<Recording> removeFavorites = new ArrayList<>();
     private ArrayList<String> favoritesKeyList = new ArrayList<>();
     private static ArrayList<Recording> myFavorites = new ArrayList<>();
+    private static ArrayList<Recording> favoritesChecker = new ArrayList<>();
 
     private ImageView iv;
     private static MediaPlayer mPlayer = null;
@@ -77,11 +78,15 @@ public class MyMediaPlayer extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_media_player);
-        myFavorites.clear();
+
         stopHandler = false;
         addFavorites.clear();
         removeFavorites.clear();
         favoritesKeyList.clear();
+        favoritesChecker.clear();
+
+        mRef = FirebaseDatabase.getInstance().getReference();
+
 
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
@@ -169,7 +174,7 @@ public class MyMediaPlayer extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_media_player, menu);
+        getMenuInflater().inflate(R.menu.menu_user_media_player, menu);
         return true;
     }
 
@@ -184,7 +189,8 @@ public class MyMediaPlayer extends AppCompatActivity {
             case android.R.id.home :
                 onBackPressed();
                 return true;
-
+            case R.id.action_close :
+                startActivity(new Intent(this, MainActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -244,7 +250,6 @@ public class MyMediaPlayer extends AppCompatActivity {
 
             isFavorite = false;
             duration = rec.getLength();
-
             bPlayPause = rootView.findViewById(R.id.btnPlayPause);
             bStop = rootView.findViewById(R.id.btnStop);
             bFavorite = (ImageButton) rootView.findViewById(R.id.btnFavorite);
@@ -305,7 +310,7 @@ public class MyMediaPlayer extends AppCompatActivity {
                 }
             });
 
-            Log.d(TAG, "onCreateView: current favorites" + myFavorites);
+            Log.d(TAG, "onCreateView: my current favorites" +  myFavorites);
             for(Recording fav : myFavorites) {
                 if(rec.getKey().equals(fav.getKey())) {
                     isFavorite = true;
@@ -315,33 +320,29 @@ public class MyMediaPlayer extends AppCompatActivity {
             bFavorite.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    rec.setFavorite(!rec.getFavorite());
                     isFavorite = !isFavorite;
-                    Log.d(TAG, "onClick: " + rec.getFavorite());
                     if(isFavorite) {
                         bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
                         addFavorites.add(rec);
                         removeFavorites.remove(rec);
-                        Log.d(TAG, "onCreateView: ADD " + addFavorites + "REMOVE" + removeFavorites);
                     } else {
                         bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
                         addFavorites.remove(rec);
                         removeFavorites.add(rec);
-                        Log.d(TAG, "onCreateView: ADD" + addFavorites + "REMOVE" + removeFavorites);
                     }
-
                 }
             });
+
+            if(isFavorite) {
+                bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
+            } else {
+                bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
+            }
 
             textTitle.setText(rec.getTitle());
             chrono2.setBase(SystemClock.elapsedRealtime() - (rec.getLength()) );
             textGenre.setText(rec.getGenre());
 
-            if (isFavorite) {
-                 bFavorite.setImageResource(R.drawable.ic_star_rate_black_18dp);
-             } else {
-                 bFavorite.setImageResource(R.drawable.ic_star_border_black_18dp);
-             }
 
             return rootView;
         }
@@ -435,21 +436,7 @@ public class MyMediaPlayer extends AppCompatActivity {
             String uid = user.getUid();
             for(final Recording rec : addFavorites) {
                 final String key = rec.getKey();
-                Query favoriteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("key").equalTo(key);
 
-                favoriteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for(DataSnapshot favoriteSnapshot : dataSnapshot.getChildren()) {
-                            favoriteSnapshot.getRef().child("favorite").setValue(true);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Log.e(TAG, "onCancelled: ", databaseError.toException());
-                    }
-                });
 
                 Query favoriteFolderQuery = mRef.child("Users").child(uid).child("Favorites").orderByChild("key").equalTo(key);
                 favoriteFolderQuery.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -480,21 +467,6 @@ public class MyMediaPlayer extends AppCompatActivity {
             String uid = user.getUid();
             for(Recording rec : removeFavorites) {
                 String key = rec.getKey();
-                Query favoriteQuery = mRef.child("Users").child(uid).child("Recordings").orderByChild("key").equalTo(key);
-
-                favoriteQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for(DataSnapshot favoriteSnapshot : dataSnapshot.getChildren()) {
-                            favoriteSnapshot.getRef().child("favorite").setValue(false);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Log.e(TAG, "onCancelled: ", databaseError.toException());
-                    }
-                });
 
                 Query favoriteFolderQuery = mRef.child("Users").child(uid).child("Favorites").orderByChild("key").equalTo(key);
                 favoriteFolderQuery.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -521,6 +493,7 @@ public class MyMediaPlayer extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 showData(dataSnapshot);
+
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -532,13 +505,11 @@ public class MyMediaPlayer extends AppCompatActivity {
     private static void showData(DataSnapshot ds) {
         myFavorites.clear();
 
-        for(DataSnapshot snap : ds.getChildren()) {
+        for (DataSnapshot snap : ds.getChildren()) {
             Recording rec = snap.getValue(Recording.class);
             myFavorites.add(rec);
         }
         Log.d(TAG, "onDataChange: my favorites are " + myFavorites);
-
     }
-
 */
 }

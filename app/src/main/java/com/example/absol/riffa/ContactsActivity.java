@@ -24,7 +24,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -48,6 +47,8 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
     private RecyclerView mUserSearchRecyvlerView;
     private ContactListAdapter mUserSearchAdapter;
 
+    private TextView textViewEmpty;
+
     ArrayList<User> userList = new ArrayList<>();
 
     private static final String TAG = "Patrik";
@@ -67,6 +68,7 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
             // Show the Up button in the action bar.
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
+        textViewEmpty = findViewById(R.id.textViewHidden);
         mDialog = new Dialog(this);
         auth = FirebaseAuth.getInstance();
         user = auth.getCurrentUser();
@@ -126,7 +128,6 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
 
     @Override
     public void onContactSelected(User user) {
-        Toast.makeText(getApplicationContext(), "Selected: " + user.getFullName() + ", " + user.getEmail(), Toast.LENGTH_LONG).show();
         onUserSelected(user);
     }
 
@@ -182,6 +183,11 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
             Log.d(TAG, "showData: GALLERY" + contactList.toString());
         }
 
+        if(contactList.size() == 0) {
+            textViewEmpty.setVisibility(View.VISIBLE);
+        } else {
+            textViewEmpty.setVisibility(View.INVISIBLE);
+        }
         recyclerView.setAdapter(mAdapter);
     }
 
@@ -246,7 +252,7 @@ public class ContactsActivity extends AppCompatActivity implements ContactsAdapt
 
     @Override
     public void onUserSelected(User user) {
-        Toast.makeText(this, user.getfName() + " selected", Toast.LENGTH_SHORT).show();
+
         Bundle bundle = new Bundle();
         bundle.putSerializable("user", user);
 

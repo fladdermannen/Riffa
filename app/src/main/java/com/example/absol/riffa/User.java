@@ -13,6 +13,7 @@ public class User implements Serializable{
     private String uID;
     private ArrayList<User> contacts;
     private ArrayList<Recording> recordings;
+    private ArrayList<Recording> favorites;
 
     public User(String fName, String lName, String email, String uID) {
         this.fName = fName;
@@ -22,6 +23,7 @@ public class User implements Serializable{
         this.uID = uID;
         this.recordings = new ArrayList<>();
         this.contacts = new ArrayList<>();
+        this.favorites = new ArrayList<>();
     }
 
     public User() {
@@ -56,4 +58,7 @@ public class User implements Serializable{
         return contacts;
     }
 
+    public ArrayList<Recording> getFavorites() {
+        return favorites;
+    }
 }

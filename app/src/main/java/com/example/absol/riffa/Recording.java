@@ -12,15 +12,20 @@ public class Recording implements Serializable {
     private String url;
     private boolean favorite;
     private String key;
+    private String author;
+    private String storageName;
 
-    public Recording(String title, int length, String genre, String date, String uri, String key){
+    public Recording(String title, int length, String genre, String date, String uri, String key, String author, String storageName){
         this.title = title;
         this.length = length;
         this.genre = genre;
         this.date = date;
         this.url = uri;
+        this.access = true;
         this.favorite = false;
         this.key = key;
+        this.author = author;
+        this.storageName = storageName;
     }
 
     public Recording() {
@@ -61,6 +66,14 @@ public class Recording implements Serializable {
         return key;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getStorageName() {
+        return storageName;
+    }
+
     public void setAccess(boolean access) {
         this.access = access;
     }
@@ -92,4 +105,13 @@ public class Recording implements Serializable {
     public void setKey(String key) {
         this.key = key;
     }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
+    public void setStorageName(String storageName) {
+        this.storageName = storageName;
+    }
+
 }

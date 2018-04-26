@@ -77,7 +77,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.MyView
     @Override
     public void onBindViewHolder(ContactsAdapter.MyViewHolder holder, int position) {
         User user = contactsList.get(position);
-        holder.name.setText(user.getFullName());
+        holder.name.setText(user.getfName() + " " + user.getlName());
         holder.email.setText(user.getEmail());
         holder.thumbnail.setImageResource(R.drawable.ic_contacts);
     }

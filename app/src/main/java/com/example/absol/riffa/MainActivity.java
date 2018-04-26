@@ -7,8 +7,10 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -51,12 +53,25 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+    private TabLayout tabLayout;
+    private ViewPager mViewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        tabLayout = findViewById(R.id.main_tablayout);
+        mViewPager = findViewById(R.id.main_viewpager);
+        MainViewPagerAdapter mAdapter = new MainViewPagerAdapter(getSupportFragmentManager());
+        mAdapter.addFragment(new FragmentMain(), "TRENDING");
+        mAdapter.addFragment(new FragmentMainSecond(), "TOP");
+        mAdapter.addFragment(new FragmentMainThird(), "RECENT");
+        mViewPager.setAdapter(mAdapter);
+        tabLayout.setupWithViewPager(mViewPager);
+
 
         auth = FirebaseAuth.getInstance();
         mDatabase = FirebaseDatabase.getInstance();

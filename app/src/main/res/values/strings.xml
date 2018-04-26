@@ -19,7 +19,14 @@
         completions."
     </string>
     <string name="title_activity_main">MainActivity</string>
+    <string name="main_top_title">Recent recordings</string>
+    <string name="main_trending">TRENDING</string>
+    <string name="main_top">TOP</string>
+    <string name="main_newest">NEWEST</string>
     <string name="empty_gallery">You have no recordings!</string>
+    <string name="empty_contacts">You have no contacts!</string>
+    <string name="empty_favorites">You have no favorites!</string>
+    <string name="empty_user_gallery">No recordings here!</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -35,9 +42,10 @@
 
     <string name="search_hint">Search...</string>
 
+    <string name="action_close">Close</string>
     <string name="action_settings">Settings</string>
     <string name="action_logout">Logout</string>
-    <string name="title_activity_gallery">GalleryActivity</string>
+    <string name="title_activity_gallery">Gallery</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 
@@ -200,8 +208,10 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
-    <string name="title_activity_contacts">ContactsActivity</string>
-    <string name="title_activity_favorites">FavoritesActivity</string>
+    <string name="title_activity_contacts">Contacts</string>
+    <string name="title_activity_favorites">Favorites</string>
     <string name="title_activity_media_player">MediaPlayer</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_user_gallery">Gallery</string>
+    <string name="title_activity_user_media_player">UserMediaPlayer</string>
 </resources>

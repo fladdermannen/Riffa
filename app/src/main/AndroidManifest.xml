@@ -19,7 +19,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".LoginActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,11 +29,13 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".AudioRecord"
-            android:label="@string/app_name" />
+            android:label="Record"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".GalleryActivity"
             android:label="@string/title_activity_gallery"
@@ -84,23 +87,39 @@
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
         </activity>
-        <activity android:name=".RegisterActivity">
+        <activity android:name=".RegisterActivity"
+            android:label="Register"
+            android:screenOrientation="portrait">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".LoginActivity" />
         </activity>
         <activity
             android:name=".MyMediaPlayer"
-            android:label="@string/title_activity_media_player"
+            android:label="@string/app_name"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".GalleryActivity" />
         </activity>
-        <activity android:name=".UserProfileActivity">
+        <activity android:name=".UserProfileActivity"
+            android:screenOrientation="portrait"
+            android:label="@string/app_name">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ContactsActivity" />
+        </activity>
+        <activity
+            android:name=".UserGalleryActivity"
+            android:label="@string/title_activity_user_gallery"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".UserMediaPlayer"
+            android:label="@string/title_activity_user_media_player"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
+
         </activity>
     </application>
 

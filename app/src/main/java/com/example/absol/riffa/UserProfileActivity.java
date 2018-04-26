@@ -2,10 +2,16 @@ package com.example.absol.riffa;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,7 +31,10 @@ public class UserProfileActivity extends AppCompatActivity {
     private User user;
     private ArrayList<Recording> recordingsList = new ArrayList<>();
 
+    private ScrollView mLl;
+    private LinearLayout userProfileGallery;
     private TextView name, recordings, email;
+    private Button mFollowBtn;
 
     DatabaseReference mRef;
     FirebaseAuth auth;
@@ -54,6 +63,9 @@ public class UserProfileActivity extends AppCompatActivity {
         recordings = findViewById(R.id.user_profile_recordings);
         name.setText(mFullName);
         email.setText(mEmail);
+        mLl = findViewById(R.id.user_profile_ll);
+        userProfileGallery = findViewById(R.id.user_profile_gallery);
+        mFollowBtn = findViewById(R.id.user_profile_follow);
 
         String userID = user.getuID();
         mRef = FirebaseDatabase.getInstance().getReference().child("Users").child(userID).child("Recordings");
@@ -61,6 +73,43 @@ public class UserProfileActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         mUser = auth.getCurrentUser();
+
+        userProfileGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("user", user);
+                Intent intent = new Intent(UserProfileActivity.this, UserGalleryActivity.class);
+                intent.putExtras(bundle);
+
+                startActivity(intent);
+            }
+        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_user_profile, menu);
+        //getMenuInflater().inflate(R.menu.search, menu);
+        return true;
+    }
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_close) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -89,7 +138,6 @@ public class UserProfileActivity extends AppCompatActivity {
         final ArrayList<String> uidList = new ArrayList<>();
         addUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mUser.getUid()).child("Contacts");
 
-
         Query checkQuery = addUserRef.orderByChild("uID");
         checkQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -103,6 +151,11 @@ public class UserProfileActivity extends AppCompatActivity {
                 Log.d(TAG, "onDataChange: " + uidList);
                 if(uidList.size() == 0) {
                     addUserRef.push().setValue(user);
+                    Snackbar snackbar = Snackbar.make(mLl,"Added " + user.getfName() + " " + user.getlName() + " to contacts!",Snackbar.LENGTH_SHORT);
+                    snackbar.show();
+                } else {
+                    Snackbar snackbar = Snackbar.make(mLl, "You are already following " + user.getfName() + "!", Snackbar.LENGTH_SHORT);
+                    snackbar.show();
                 }
             }
 

@@ -22,7 +22,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -39,6 +38,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     private ArrayList<Recording> recordingList = new ArrayList<>();
     private ArrayList<Recording> recordingsMakePrivate = new ArrayList<>();
     private ArrayList<Recording> recordingsMakePublic = new ArrayList<>();
+    private ArrayList<Recording> myFavorites = new ArrayList<>();
     private RecyclerView recyclerView;
     private RecordingsAdapter mAdapter;
     private SearchView searchView;
@@ -66,6 +66,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         deleteDialog = new Dialog(this);
         recordingsMakePrivate.clear();
         recordingsMakePublic.clear();
+        loadFavorites();
 
         mReference= mDatabase.getReference().child("Users").child(userID).child("Recordings");
         prepareRecordingData();
@@ -113,7 +114,7 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy: destroyed");
+        Log.d(TAG, "onDestroy: Gallery destroyed");
         super.onDestroy();
     }
     @Override
@@ -125,21 +126,30 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
     }
 
     @Override
+    public void onResume() {
+        lock = false;
+        super.onResume();
+    }
+
+    @Override
     public void onRecordingSelected(Recording rec) {
         if(!lock) {
             lock = true;
-            Toast.makeText(getApplicationContext(), "Selected: " + rec.getTitle() + ", access is " + rec.getAccess(), Toast.LENGTH_LONG).show();
 
             Bundle bundle = new Bundle();
             bundle.putSerializable("recordings", recordingList);
             Bundle bundle2 = new Bundle();
             bundle2.putSerializable("current", rec);
+            Bundle bundle3 = new Bundle();
+            bundle3.putSerializable("favorites", myFavorites);
 
             Intent intent = new Intent(this, MyMediaPlayer.class);
             intent.putExtras(bundle);
             intent.putExtras(bundle2);
+            intent.putExtras(bundle3);
             intent.putExtra("position", recordingList.indexOf(rec));
 
+            addClick(rec);
 
             startActivity(intent);
         }
@@ -241,6 +251,30 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
         recyclerView.setAdapter(mAdapter);
     }
 
+    private void loadFavorites() {
+        DatabaseReference favoritesRef = FirebaseDatabase.getInstance().getReference().child("Users").child(userID).child("Favorites");
+        favoritesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                showFavorites(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void showFavorites(DataSnapshot ds) {
+        myFavorites.clear();
+        for(DataSnapshot snap : ds.getChildren()) {
+            Recording rec = snap.getValue(Recording.class);
+            myFavorites.add(rec);
+        }
+        Log.d(TAG, "onDataChange: favoriteslist" + myFavorites);
+    }
+
     private void makeAccessPublic() {
         if(recordingsMakePublic.size() > 0) {
             for(Recording rec : recordingsMakePublic) {
@@ -258,6 +292,40 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Log.e(TAG, "onCancelled: ", databaseError.toException());
+                    }
+                });
+
+                DatabaseReference clickRef = FirebaseDatabase.getInstance().getReference().child("ClickCounters");
+                Query clickQuery = clickRef.orderByChild("key").equalTo(key);
+
+                clickQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().child("access").setValue(true);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+                DatabaseReference recentRef = FirebaseDatabase.getInstance().getReference().child("Recent");
+                Query recentQuery = recentRef.orderByChild("key").equalTo(key);
+
+                recentQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().child("access").setValue(true);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
                     }
                 });
             }
@@ -283,7 +351,64 @@ public class GalleryActivity extends AppCompatActivity implements RecordingsAdap
                         Log.e(TAG, "onCancelled: ", databaseError.toException());
                     }
                 });
+
+                DatabaseReference clickRef = FirebaseDatabase.getInstance().getReference().child("ClickCounters");
+                Query clickQuery = clickRef.orderByChild("key").equalTo(key);
+
+                clickQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().child("access").setValue(false);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+                DatabaseReference recentRef = FirebaseDatabase.getInstance().getReference().child("Recent");
+                Query recentQuery = recentRef.orderByChild("key").equalTo(key);
+
+                recentQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                            ds.getRef().child("access").setValue(false);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
         }
+    }
+
+    private void addClick(Recording rec) {
+        String key = rec.getKey();
+
+        DatabaseReference clickReference = FirebaseDatabase.getInstance().getReference().child("ClickCounters");
+        Query clickQuery = clickReference.orderByChild("key").equalTo(key);
+
+        clickQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot ds : dataSnapshot.getChildren()) {
+                    ClickCounter cc = ds.getValue(ClickCounter.class);
+                    int clicks = cc.getClicks();
+                    ds.getRef().child("clicks").setValue(clicks+1);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 }

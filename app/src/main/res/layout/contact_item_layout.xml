@@ -13,6 +13,7 @@
 
     <ImageView
         android:id="@+id/contact_thumbnail"
+        android:tint="@color/textColor"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_centerVertical="true"

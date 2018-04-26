@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.example.absol.riffa.FavoritesActivity">
+    android:background="@color/colorPrimaryDark"
+    tools:context=".UserGalleryActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar"
@@ -33,17 +34,16 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_favorites" />
+    <include layout="@layout/content_user_gallery" />
 
     <TextView
         android:id="@+id/textViewHidden"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/empty_favorites"
+        android:text="@string/empty_user_gallery"
         android:textColor="@color/textColor"
         android:textSize="24sp"
         android:gravity="center"
         android:visibility="invisible"/>
-
 
 </android.support.design.widget.CoordinatorLayout>

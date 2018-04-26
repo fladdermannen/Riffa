@@ -16,6 +16,7 @@
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/padlock"
         android:layout_alignParentTop="true"
         android:textColor="@color/textColor"
         android:textSize="20sp"
@@ -26,10 +27,11 @@
         android:textColor="@color/length"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/padlock"
         android:layout_below="@id/title" />
 
     <TextView
-        android:id="@+id/author"
+        android:id="@+id/date"
         android:textColor="@color/textColor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -41,7 +43,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
-        android:layout_below="@+id/author"
+        android:layout_below="@+id/date"
         android:textColor="@color/length" />
 
 </RelativeLayout>

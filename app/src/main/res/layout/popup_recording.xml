@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:layout_width="350dp"
     android:layout_height="475dp"
-    android:background="@color/title"
+    android:background="@color/colorPrimary"
     android:padding="5dp"
     android:layout_gravity="center">
 
@@ -37,6 +37,7 @@
 
     <ImageButton
         android:id="@+id/btnPlay"
+        android:background="@color/textColor"
         android:src="@drawable/ic_stop_filled"
         android:backgroundTint="@color/textColor"
         android:layout_width="wrap_content"
